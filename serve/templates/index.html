@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Potato Leaf Disease Check</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        color-scheme: light;
+
+        --paper: #f2ece0;
+        --paper-raised: #f8f4ea;
+        --paper-sunk: #eae2d2;
+        --ink: #1c2620;
+        --ink-soft: #5b6659;
+        --ink-faint: #8b9187;
+        --rule: #cec4ae;
+        --rule-fine: #ded5c2;
+
+        --early: #b26a26;
+        --late: #8c3535;
+        --healthy: #3a7549;
+        --amber: #9a6b12;
+        --amber-wash: #f6ecd2;
+
+        --shadow-plate:
+          0 1px 0 rgba(255, 255, 255, 0.7) inset,
+          0 12px 28px -18px rgba(28, 38, 32, 0.5);
+
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+        --display: "Fraunces", "Iowan Old Style", Georgia, serif;
+
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--paper);
+        background-image:
+          radial-gradient(
+            ellipse 80% 55% at 50% -10%,
+            #fbf7ee 0%,
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse 60% 40% at 92% 108%,
+            #e6dcc8 0%,
+            transparent 65%
+          );
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.55;
+        min-height: 100vh;
+      }
+
+      /* Paper grain — sits above the ground, below all content. */
+      .grain {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.35;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 56px 22px 96px;
+      }
+
+      /* ── Entrance choreography ──────────────────────────────────── */
+      .rise {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.85s var(--ease) forwards;
+      }
+      .rise:nth-of-type(1) {
+        animation-delay: 0.05s;
+      }
+      .d1 {
+        animation-delay: 0.16s;
+      }
+      .d2 {
+        animation-delay: 0.27s;
+      }
+      .d3 {
+        animation-delay: 0.38s;
+      }
+
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rise {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+        * {
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* ── Masthead ───────────────────────────────────────────────── */
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin: 0 0 18px;
+      }
+
+      h1 {
+        font-family: var(--display);
+        font-variation-settings:
+          "opsz" 120,
+          "SOFT" 28,
+          "WONK" 1;
+        font-weight: 480;
+        font-size: clamp(2.5rem, 9vw, 3.9rem);
+        line-height: 0.94;
+        letter-spacing: -0.022em;
+        margin: 0;
+      }
+
+      h1 em {
+        font-style: italic;
+        font-weight: 350;
+        display: block;
+        color: var(--ink-soft);
+        font-variation-settings:
+          "opsz" 120,
+          "SOFT" 60,
+          "WONK" 1;
+      }
+
+      .double-rule {
+        margin: 26px 0 18px;
+        border-top: 1.5px solid var(--ink);
+        border-bottom: 1px solid var(--rule);
+        height: 4px;
+      }
+
+      /* ── Class legend ───────────────────────────────────────────── */
+      .legend {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        padding: 0;
+        margin: 0;
+      }
+
+      .legend li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        color: var(--ink-soft);
+      }
+
+      .swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        box-shadow: 0 0 0 1px rgba(28, 38, 32, 0.18);
+      }
+      .swatch.early {
+        background: var(--early);
+      }
+      .swatch.late {
+        background: var(--late);
+      }
+      .swatch.healthy {
+        background: var(--healthy);
+      }
+
+      /* ── Plate cards ────────────────────────────────────────────── */
+      .plate {
+        position: relative;
+        background: var(--paper-raised);
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        padding: 26px 24px 24px;
+        margin-top: 30px;
+        box-shadow: var(--shadow-plate);
+      }
+
+      /* Inset hairline — the second frame of a specimen mount. */
+      .plate::after {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border: 1px solid var(--rule-fine);
+        border-radius: 1px;
+        pointer-events: none;
+      }
+
+      .plate > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .plate-label {
+        position: absolute;
+        top: -8px;
+        left: 20px;
+        z-index: 2;
+        background: var(--paper-raised);
+        padding: 0 9px;
+        font-family: var(--mono);
+        font-size: 0.63rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+      }
+
+      /* ── Drop zone ──────────────────────────────────────────────── */
+      .drop {
+        display: block;
+        border: 1.5px dashed var(--rule);
+        border-radius: 2px;
+        background: var(--paper-sunk);
+        padding: 34px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color 0.25s,
+          background 0.25s,
+          transform 0.25s;
+      }
+
+      .drop:hover,
+      .drop:focus-within {
+        border-color: var(--healthy);
+        background: #eee9db;
+      }
+
+      .drop.dragging {
+        border-color: var(--healthy);
+        background: #e7eee0;
+        transform: scale(1.008);
+      }
+
+      .drop.has-file {
+        padding: 14px;
+        border-style: solid;
+        text-align: left;
+      }
+
+      .drop input[type="file"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .drop-icon {
+        display: block;
+        margin: 0 auto 12px;
+        color: var(--ink-faint);
+      }
+
+      .drop-title {
+        font-family: var(--display);
+        font-variation-settings:
+          "opsz" 30,
+          "SOFT" 40;
+        font-size: 1.16rem;
+        font-weight: 500;
+        margin: 0 0 3px;
+      }
+
+      .drop-hint {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin: 0;
+      }
+
+      /* Mounted specimen preview */
+      .mount {
+        margin: 0;
+        display: none;
+      }
+
+      .drop.has-file .mount {
+        display: block;
+      }
+      .drop.has-file .drop-prompt {
+        display: none;
+      }
+
+      .mount img {
+        display: block;
+        width: 100%;
+        max-height: 320px;
+        object-fit: contain;
+        background: #e2dac9;
+        border: 1px solid var(--rule);
+      }
+
+      .mount figcaption {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.04em;
+        color: var(--ink-faint);
+        padding-top: 8px;
+      }
+
+      .mount figcaption span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ── Button ─────────────────────────────────────────────────── */
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        font-family: var(--mono);
+        font-size: 0.76rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        background: var(--ink);
+        color: var(--paper);
+        border: 0;
+        border-radius: 2px;
+        padding: 14px 26px;
+        cursor: pointer;
+        transition:
+          transform 0.18s var(--ease),
+          box-shadow 0.18s,
+          background 0.2s;
+        box-shadow: 0 6px 16px -10px rgba(28, 38, 32, 0.9);
+      }
+
+      button:hover:not(:disabled) {
+        background: #2b3a30;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px -10px rgba(28, 38, 32, 0.85);
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      button:disabled {
+        background: var(--ink-faint);
+        cursor: default;
+        box-shadow: none;
+      }
+
+      button:focus-visible,
+      .drop:focus-within {
+        outline: 2px solid var(--healthy);
+        outline-offset: 3px;
+      }
+
+      .clear {
+        background: none;
+        border: 0;
+        color: var(--ink-faint);
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        padding: 4px;
+        cursor: pointer;
+        box-shadow: none;
+      }
+      .clear:hover {
+        background: none;
+        color: var(--ink);
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* ── Guidance ───────────────────────────────────────────────── */
+      .tips {
+        list-style: none;
+        counter-reset: t;
+        padding: 0;
+        margin: 4px 0 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .tips li {
+        counter-increment: t;
+        display: grid;
+        grid-template-columns: 26px 1fr;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--ink-soft);
+      }
+
+      .tips li::before {
+        content: counter(t, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        color: var(--ink-faint);
+        padding-top: 3px;
+      }
+
+      /* ── Result ─────────────────────────────────────────────────── */
+      .verdict-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 0.63rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin: 0 0 6px;
+      }
+
+      .verdict {
+        font-family: var(--display);
+        font-variation-settings:
+          "opsz" 90,
+          "SOFT" 30,
+          "WONK" 1;
+        font-size: clamp(1.9rem, 6.5vw, 2.6rem);
+        font-weight: 500;
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .verdict.early {
+        color: var(--early);
+      }
+      .verdict.late {
+        color: var(--late);
+      }
+      .verdict.healthy {
+        color: var(--healthy);
+      }
+
+      .score {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .score-num {
+        font-family: var(--mono);
+        font-size: 2.15rem;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .score-num sup {
+        font-size: 0.9rem;
+        top: -0.85em;
+        margin-left: 1px;
+        color: var(--ink-faint);
+      }
+
+      .score-cap {
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-top: 4px;
+      }
+
+      .breakdown {
+        margin-top: 24px;
+        border-top: 1px solid var(--rule-fine);
+        padding-top: 18px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .bar {
+        display: grid;
+        grid-template-columns: 96px 1fr 56px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bar-name {
+        font-size: 0.82rem;
+        color: var(--ink-soft);
+        line-height: 1.2;
+      }
+
+      .track {
+        display: block;
+        position: relative;
+        background: var(--paper-sunk);
+        border: 1px solid var(--rule-fine);
+        height: 15px;
+        overflow: hidden;
+      }
+
+      /* display:block is load-bearing — an inline span ignores width. */
+      .fill {
+        display: block;
+        height: 100%;
+        width: 0;
+        transition: width 0.85s var(--ease);
+        background: var(--ink-faint);
+      }
+      .fill.early {
+        background: var(--early);
+      }
+      .fill.late {
+        background: var(--late);
+      }
+      .fill.healthy {
+        background: var(--healthy);
+      }
+
+      .thresh {
+        position: absolute;
+        top: -1px;
+        bottom: -1px;
+        width: 0;
+        border-left: 1.5px dashed rgba(28, 38, 32, 0.55);
+        pointer-events: none;
+      }
+
+      .bar-val {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-soft);
+      }
+
+      .thresh-key {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.05em;
+        color: var(--ink-faint);
+        margin: 4px 0 0;
+        grid-column: 1 / -1;
+      }
+
+      .thresh-key i {
+        display: block;
+        width: 0;
+        height: 11px;
+        border-left: 1.5px dashed rgba(28, 38, 32, 0.55);
+      }
+
+      /* Inconclusive */
+      .abstain-box {
+        background: var(--amber-wash);
+        border: 1px solid #e2cf9e;
+        border-left: 3px solid var(--amber);
+        padding: 15px 17px;
+        margin-bottom: 4px;
+      }
+
+      .abstain-box strong {
+        font-family: var(--display);
+        font-variation-settings:
+          "opsz" 30,
+          "SOFT" 40;
+        font-size: 1.14rem;
+        font-weight: 550;
+        display: block;
+        margin-bottom: 5px;
+        color: #6d4a08;
+      }
+
+      .abstain-box p {
+        margin: 0;
+        font-size: 0.87rem;
+        color: #6b5a34;
+      }
+
+      .err {
+        border-left: 3px solid var(--late);
+        padding-left: 15px;
+        font-size: 0.9rem;
+        color: var(--late);
+      }
+
+      /* Working state */
+      .working {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+      }
+
+      .spinner {
+        width: 13px;
+        height: 13px;
+        border: 1.5px solid var(--rule);
+        border-top-color: var(--ink);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── Colophon ───────────────────────────────────────────────── */
+      footer {
+        margin-top: 44px;
+        padding-top: 20px;
+        border-top: 1px solid var(--rule);
+      }
+
+      .note {
+        font-size: 0.775rem;
+        line-height: 1.65;
+        color: var(--ink-faint);
+        margin: 0 0 14px;
+        max-width: 58ch;
+      }
+
+      .note b {
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+
+      .stamp {
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        color: var(--ink-faint);
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 14px;
+      }
+
+      .stamp .ok {
+        color: var(--healthy);
+      }
+      .stamp .bad {
+        color: var(--late);
+      }
+
+      @media (max-width: 440px) {
+        main {
+          padding: 38px 16px 72px;
+        }
+        .bar {
+          grid-template-columns: 78px 1fr 48px;
+          gap: 9px;
+        }
+        .verdict-head {
+          gap: 12px;
+        }
+        .score {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <main>
+      <header class="rise">
+        <!-- <p class="eyebrow">Plate 01 · Solanum tuberosum · Foliar diagnosis</p> -->
+        <h1>Potato Leaf<br /><em>Disease Checker</em></h1>
+        <div class="double-rule" role="presentation"></div>
+        <ul class="legend">
+          <li>
+            <span class="swatch early" aria-hidden="true"></span>Early Blight
+          </li>
+          <li>
+            <span class="swatch late" aria-hidden="true"></span>Late Blight
+          </li>
+          <li>
+            <span class="swatch healthy" aria-hidden="true"></span>Healthy
+          </li>
+        </ul>
+      </header>
+
+      <section class="plate rise d1">
+        <span class="plate-label">Specimen</span>
+
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*" capture="environment" />
+
+          <div class="drop-prompt">
+            <svg
+              class="drop-icon"
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.15"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20.5 3.5C10 4 5 8 5 13.5c0 3.6 2.6 6.2 6 6.2 5.5 0 9.5-5.7 9.5-16.2Z"
+              />
+              <path d="M20.5 3.5 8.2 18.6" />
+              <path d="M16.9 8.9 13 8.2" />
+              <path d="M14.2 12.4 10.3 11.7" />
+              <path d="M17.6 5.6 16.9 9.5" />
+              <path d="M13.6 10.6 12.9 14.5" />
+            </svg>
+            <p class="drop-title">Drop a leaf photograph here</p>
+            <p class="drop-hint">or click to browse · paste with ⌘V / Ctrl-V</p>
+          </div>
+
+          <figure class="mount">
+            <img id="preview" alt="Selected leaf photograph" />
+            <figcaption>
+              <span id="fname"></span><span id="fsize"></span>
+            </figcaption>
+          </figure>
+        </label>
+
+        <div class="actions">
+          <button id="go" type="button">Analyse specimen</button>
+          <button class="clear" id="clear" type="button" hidden>Clear</button>
+        </div>
+      </section>
+
+      <div id="out" aria-live="polite"></div>
+
+      <section class="plate rise d2">
+        <span class="plate-label">Method notes</span>
+        <ol class="tips">
+          <li>One leaf, centred and filling most of the frame.</li>
+          <li>Plain background where possible — soil, a hand, or paper.</li>
+          <li>Even daylight. No harsh shadow falling across the blade.</li>
+          <li>Focus on the lesion if there is one.</li>
+        </ol>
+      </section>
+
+      <footer class="rise d3">
+        <p class="note">
+          <b>Research prototype.</b> Trained on 2,152 laboratory images of
+          potato leaves. Accuracy on real field photographs is unverified — and
+          measuring it is precisely what this tool collects data for. The
+          percentage shown is a relative model score, not a calibrated
+          probability. Not a substitute for agronomic advice. Uploaded images
+          are stored for evaluation.
+        </p>
+        <p class="stamp" id="stamp">
+          <span>Checking model…</span>
+        </p>
+      </footer>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const fileEl = $("file"),
+        dropEl = $("drop"),
+        goEl = $("go"),
+        clearEl = $("clear"),
+        outEl = $("out"),
+        prevEl = $("preview"),
+        fnameEl = $("fname"),
+        fsizeEl = $("fsize"),
+        stampEl = $("stamp");
+
+      const MAX_BYTES = 10 * 1024 * 1024;
+      let THRESHOLD = 0.9;
+      let objectUrl = null;
+
+      const KEY = {
+        "Early Blight": "early",
+        "Late Blight": "late",
+        Healthy: "healthy",
+      };
+      const cls = (label) => KEY[label] || "";
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      const kb = (n) =>
+        n < 1024 * 1024
+          ? (n / 1024).toFixed(0) + " KB"
+          : (n / 1048576).toFixed(1) + " MB";
+
+      /* ── Model provenance in the colophon ───────────────────────── */
+      fetch("/health")
+        .then((r) => r.json())
+        .then((h) => {
+          if (typeof h.threshold === "number") THRESHOLD = h.threshold;
+          stampEl.innerHTML =
+            '<span class="ok">● model loaded</span>' +
+            "<span>" +
+            esc(h.checkpoint || "checkpoint") +
+            "</span>" +
+            "<span>preprocessing: " +
+            esc(h.aug_mode) +
+            "</span>" +
+            "<span>abstains below " +
+            (THRESHOLD * 100).toFixed(0) +
+            "%</span>";
+        })
+        .catch(() => {
+          stampEl.innerHTML = '<span class="bad">● server unreachable</span>';
+        });
+
+      /* ── File selection ─────────────────────────────────────────── */
+      function showFile(f) {
+        if (!f) return reset();
+        if (!f.type.startsWith("image/")) {
+          return renderError("That is not an image file.");
+        }
+        if (f.size > MAX_BYTES) {
+          return renderError(
+            "Image is " +
+              kb(f.size) +
+              ". The limit is 10 MB — please resize it.",
+          );
+        }
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = URL.createObjectURL(f);
+        prevEl.src = objectUrl;
+        fnameEl.textContent = f.name || "pasted image";
+        fsizeEl.textContent = kb(f.size);
+        dropEl.classList.add("has-file");
+        clearEl.hidden = false;
+        outEl.innerHTML = "";
+      }
+
+      function reset() {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+        fileEl.value = "";
+        prevEl.removeAttribute("src");
+        dropEl.classList.remove("has-file");
+        clearEl.hidden = true;
+        outEl.innerHTML = "";
+      }
+
+      fileEl.onchange = () => showFile(fileEl.files[0]);
+      clearEl.onclick = (e) => {
+        e.preventDefault();
+        reset();
+      };
+
+      /* Drag and drop */
+      ["dragenter", "dragover"].forEach((ev) =>
+        dropEl.addEventListener(ev, (e) => {
+          e.preventDefault();
+          dropEl.classList.add("dragging");
+        }),
+      );
+      ["dragleave", "drop"].forEach((ev) =>
+        dropEl.addEventListener(ev, (e) => {
+          e.preventDefault();
+          dropEl.classList.remove("dragging");
+        }),
+      );
+      dropEl.addEventListener("drop", (e) => {
+        const f = e.dataTransfer.files[0];
+        if (f) {
+          const dt = new DataTransfer();
+          dt.items.add(f);
+          fileEl.files = dt.files;
+          showFile(f);
+        }
+      });
+
+      /* Paste from clipboard */
+      window.addEventListener("paste", (e) => {
+        const item = [...(e.clipboardData?.items || [])].find((i) =>
+          i.type.startsWith("image/"),
+        );
+        if (!item) return;
+        const f = item.getAsFile();
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        fileEl.files = dt.files;
+        showFile(f);
+      });
+
+      /* ── Rendering ──────────────────────────────────────────────── */
+      function plate(inner, label) {
+        outEl.innerHTML =
+          '<section class="plate"><span class="plate-label">' +
+          label +
+          "</span>" +
+          inner +
+          "</section>";
+      }
+
+      function renderError(msg) {
+        plate('<p class="err">' + esc(msg) + "</p>", "Error");
+      }
+
+      function bars(probs) {
+        const entries = Object.entries(probs).sort((a, b) => b[1] - a[1]);
+        const rows = entries
+          .map(
+            ([k, v]) =>
+              '<div class="bar"><span class="bar-name">' +
+              esc(k) +
+              '</span><span class="track"><span class="fill ' +
+              cls(k) +
+              '" data-w="' +
+              (v * 100).toFixed(1) +
+              '"></span><span class="thresh" style="left:' +
+              (THRESHOLD * 100).toFixed(1) +
+              '%"></span></span><span class="bar-val">' +
+              (v * 100).toFixed(1) +
+              "%</span></div>",
+          )
+          .join("");
+        return (
+          '<div class="breakdown">' +
+          rows +
+          '<p class="thresh-key"><i></i>' +
+          (THRESHOLD * 100).toFixed(0) +
+          "% reporting threshold</p></div>"
+        );
+      }
+
+      function animateBars() {
+        requestAnimationFrame(() =>
+          document
+            .querySelectorAll(".fill[data-w]")
+            .forEach((el) => (el.style.width = el.dataset.w + "%")),
+        );
+      }
+
+      function renderResult(d) {
+        const c = cls(d.label);
+        const body = d.abstain
+          ? '<div class="abstain-box"><strong>Inconclusive</strong>' +
+            "<p>Closest match is <b>" +
+            esc(d.label) +
+            "</b> at " +
+            (d.confidence * 100).toFixed(1) +
+            "%, below the " +
+            (THRESHOLD * 100).toFixed(0) +
+            "% threshold this model reports at. Retake with the leaf centred and more evenly lit.</p></div>" +
+            bars(d.probs)
+          : '<div class="verdict-head"><div>' +
+            '<p class="tag"><span class="swatch ' +
+            c +
+            '"></span>Diagnosis</p>' +
+            '<p class="verdict ' +
+            c +
+            '">' +
+            esc(d.label) +
+            "</p></div>" +
+            '<div class="score"><div class="score-num">' +
+            (d.confidence * 100).toFixed(1) +
+            "<sup>%</sup></div>" +
+            '<div class="score-cap">model score</div></div></div>' +
+            bars(d.probs);
+
+        plate(body, d.abstain ? "Result · inconclusive" : "Result");
+        animateBars();
+      }
+
+      /* ── Submit ─────────────────────────────────────────────────── */
+      goEl.onclick = async () => {
+        const f = fileEl.files[0];
+        if (!f) {
+          renderError("Choose or drop a leaf photograph first.");
+          return;
+        }
+
+        goEl.disabled = true;
+        goEl.textContent = "Analysing";
+        plate(
+          '<div class="working"><span class="spinner"></span>Running inference</div>',
+          "Working",
+        );
+
+        const fd = new FormData();
+        fd.append("image", f);
+
+        try {
+          const r = await fetch("/predict", { method: "POST", body: fd });
+          if (r.status === 413) {
+            renderError("Image too large — the server accepts up to 10 MB.");
+          } else if (!r.ok && r.status >= 500) {
+            renderError(
+              "Server error " +
+                r.status +
+                ". Check the terminal running app.py.",
+            );
+          } else {
+            const d = await r.json();
+            if (d.error) renderError(d.error);
+            else renderResult(d);
+          }
+        } catch (e) {
+          renderError("Request failed — is the server still running?");
+        } finally {
+          goEl.disabled = false;
+          goEl.textContent = "Analyse specimen";
+        }
+      };
+    </script>
+  </body>
+</html>
