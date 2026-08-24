@@ -58,14 +58,6 @@ Supporting modules live in `scripts/` and are imported by the notebooks:
 `config.py` (all constants : single source of truth), `data.py`, `model.py`,
 `train.py`, `eval.py`.
 
-### Limitations
-
-- Trained entirely on laboratory images : uniform background, controlled lighting. Performance on field photos from a phone is unverified; every upload is logged specifically to measure this gap later.
-- 152 healthy images against 1,000 per disease class, so treat single-fold healthy-recall figures with caution.
-- No independent held-out test set : reported metrics are cross-validated.
-- Displayed percentage is a relative model score, not a calibrated probability.
-- Not a substitute for agronomic advice.
-
 ## Running the web app locally
 
 ```bash
@@ -76,26 +68,22 @@ pip install -r requirements.txt
 # 2. Start the server
 cd serve
 python app.py
+
+## 3.  Running
+Open <http://127.0.0.1:5000>.(local host)
+Upload a leaf photo : the page returns the predicted class, a model score, and a
+per-class breakdown.
+Below 0.90 confidence it declines to call the result rather than guessing.
 ```
-
-Open <http://127.0.0.1:5000>.
-
-Upload a leaf photo; the page returns the predicted class, a model score, and a
-per-class breakdown. Below 0.90 confidence it declines to call the result rather
-than guessing.
 
 Every submission is saved to `results/uploads/` with a row in `log.csv`. This is
 deliberate, so real-world performance can be measured later against the lab-image
 training set.
 
-## Limitations
+### Limitations
 
-- Trained entirely on **laboratory images** — uniform 256×256, controlled background.
-  Performance on field photographs from a phone is **unverified**; the upload log
-  exists to measure it.
-- **152 healthy images** against 1,000 per disease class. Per-fold healthy recall moves
-  in ~3.3-point steps, so treat single-fold figures with caution and read the ± spread.
-- **No independent held-out test set.** Reported metrics are cross-validated, which is
-  honest but not the same as an untouched test set.
-- The displayed percentage is a **relative model score, not a calibrated probability**.
+- Trained entirely on laboratory images : uniform background, controlled lighting. Performance on field photos from a phone is unverified; every upload is logged specifically to measure this gap later.
+- 152 healthy images against 1,000 per disease class, so treat single-fold healthy-recall figures with caution.
+- No independent held-out test set : reported metrics are cross-validated.
+- Displayed percentage is a relative model score, not a calibrated probability.
 - Not a substitute for agronomic advice.
