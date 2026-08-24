@@ -1,0 +1,46 @@
+{
+  "generated": "2026-08-21T14:08:29",
+  "seed": 42,
+  "source": "spMohanty/PlantVillage-Dataset (raw/color)",
+  "phash_threshold": 3,
+  "border_px_probe": 4,
+  "n_files": 2152,
+  "n_kept": 2152,
+  "n_groups": 2151,
+  "per_class_images": {
+    "Potato___Early_blight": 1000,
+    "Potato___Late_blight": 1000,
+    "Potato___healthy": 152
+  },
+  "per_class_groups": {
+    "Potato___Early_blight": 999,
+    "Potato___Late_blight": 1000,
+    "Potato___healthy": 152
+  },
+  "integrity": {
+    "unreadable": 0,
+    "resolutions": [
+      "256x256"
+    ],
+    "modes": [
+      "RGB"
+    ],
+    "formats": [
+      "JPEG"
+    ]
+  },
+  "duplication": {
+    "exact_sha256": 0,
+    "near_dup_pairs": 1,
+    "largest_group": 2,
+    "cross_label_groups": 0,
+    "adjudicated": "1 genuine consecutive-frame pair (S_Early.B 9091/9092); 4px threshold=3 after rejecting 2 coincidental matches at t=5"
+  },
+  "background_probe": {
+    "macro_f1_4px": 0.811,
+    "macro_f1_16px": 0.876,
+    "baseline": 0.212,
+    "greyscale_only": 0.586,
+    "finding": "acquisition-condition confound, chromatic; Grad-CAM verification required"
+  }
+}

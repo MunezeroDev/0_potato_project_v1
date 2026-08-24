@@ -1,0 +1,12 @@
+{
+  "classes": [
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy"
+  ],
+  "class_to_idx": {
+    "Potato___Early_blight": 0,
+    "Potato___Late_blight": 1,
+    "Potato___healthy": 2
+  }
+}

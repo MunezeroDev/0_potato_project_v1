@@ -1,0 +1,31 @@
+{
+  "arch": "mobilenet_v3_large",
+  "trained_on": 2152,
+  "class_to_idx": {
+    "Potato___Early_blight": 0,
+    "Potato___Late_blight": 1,
+    "Potato___healthy": 2
+  },
+  "img_size": 224,
+  "aug_mode": "greyworld",
+  "epochs": {
+    "stage1": 8,
+    "stage2": 15
+  },
+  "normalisation": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "cv_macro_f1": "0.9920 \u00b1 0.0072",
+  "cv_healthy_recall": "0.9935 \u00b1 0.0144",
+  "confidence_threshold": 0.9,
+  "note": "No held-out set: trained on all data. Metrics are from 5-fold CV under the same configuration. Grey-world normalisation must be applied at inference."
+}

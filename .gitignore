@@ -1,0 +1,38 @@
+# ── Raw data (40MB zip + 2152 images) — fetched from source, not versioned ──
+data/potato_raw/
+data/potato_raw.zip
+
+# ── Model weights (~17MB each, ~15 of them) — regenerate by running the notebooks ──
+*.pt
+*.pth
+*.onnx
+
+# Exception: the single deployable model (17MB) so the repo is runnable as cloned
+!results/final/potato_mobilenetv3_final.pt
+
+# ── Runtime output ──
+results/uploads/
+
+# ── Scratch ──
+notebooks/Untitled*.ipynb
+notebooks/.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+FINDINGS.md
+temp.md
+
