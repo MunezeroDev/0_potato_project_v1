@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Potato Leaf Disease Check</title>
+    <title>Potato Leaf Disease Classification</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
@@ -16,71 +16,56 @@
       :root {
         color-scheme: light;
 
-        --paper: #f2ece0;
-        --paper-raised: #f8f4ea;
-        --paper-sunk: #eae2d2;
-        --ink: #1c2620;
-        --ink-soft: #5b6659;
-        --ink-faint: #8b9187;
-        --rule: #cec4ae;
-        --rule-fine: #ded5c2;
+        --green: #17c964;
+        --green-deep: #0e9f4c;
+        --green-ink: #0a7d3b;
+        --mint: #e8faf0;
+        --mint-2: #d3f5e2;
 
-        --early: #b26a26;
-        --late: #8c3535;
-        --healthy: #3a7549;
-        --amber: #9a6b12;
-        --amber-wash: #f6ecd2;
+        --ink: #14201a;
+        --grey: #7b8a83;
+        --grey-soft: #9aa8a1;
+        --line: #e6ece9;
 
-        --shadow-plate:
-          0 1px 0 rgba(255, 255, 255, 0.7) inset,
-          0 12px 28px -18px rgba(28, 38, 32, 0.5);
+        --early: #f5a524;
+        --late: #ef4444;
+        --healthy: #17c964;
 
-        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-        --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
-        --display: "Fraunces", "Iowan Old Style", Georgia, serif;
-
-        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+        --hand: "Caveat", "Segoe Script", cursive;
+        --ease: cubic-bezier(0.22, 0.7, 0.24, 1);
       }
 
       * {
         box-sizing: border-box;
       }
 
-      html {
-        -webkit-text-size-adjust: 100%;
-      }
-
       body {
         margin: 0;
-        padding: 0;
-        background: var(--paper);
-        background-image:
-          radial-gradient(
-            ellipse 80% 55% at 50% -10%,
-            #fbf7ee 0%,
-            transparent 70%
-          ),
-          radial-gradient(
-            ellipse 60% 40% at 92% 108%,
-            #e6dcc8 0%,
-            transparent 65%
-          );
+        background: #fff;
         color: var(--ink);
         font-family: var(--sans);
         font-size: 16px;
         line-height: 1.55;
-        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
       }
 
-      /* Paper grain — sits above the ground, below all content. */
-      .grain {
+      /* Soft mint glow, like the poster's circle behind the phone. */
+      body::before {
+        content: "";
         position: fixed;
-        inset: 0;
-        z-index: 0;
+        top: -220px;
+        right: -180px;
+        width: 620px;
+        height: 620px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          var(--mint) 0%,
+          rgba(232, 250, 240, 0) 68%
+        );
         pointer-events: none;
-        opacity: 0.35;
-        mix-blend-mode: multiply;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+        z-index: 0;
       }
 
       main {
@@ -88,26 +73,20 @@
         z-index: 1;
         max-width: 680px;
         margin: 0 auto;
-        padding: 56px 22px 96px;
+        padding: 64px 22px 90px;
       }
 
-      /* ── Entrance choreography ──────────────────────────────────── */
+      /* ── Entrance ───────────────────────────────────────────────── */
       .rise {
         opacity: 0;
-        transform: translateY(14px);
-        animation: rise 0.85s var(--ease) forwards;
-      }
-      .rise:nth-of-type(1) {
-        animation-delay: 0.05s;
+        transform: translateY(16px);
+        animation: rise 0.7s var(--ease) forwards;
       }
       .d1 {
-        animation-delay: 0.16s;
+        animation-delay: 0.12s;
       }
       .d2 {
-        animation-delay: 0.27s;
-      }
-      .d3 {
-        animation-delay: 0.38s;
+        animation-delay: 0.24s;
       }
 
       @keyframes rise {
@@ -128,156 +107,167 @@
         }
       }
 
-      /* ── Masthead ───────────────────────────────────────────────── */
-      .eyebrow {
-        font-family: var(--mono);
-        font-size: 0.66rem;
-        font-weight: 500;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
-        margin: 0 0 18px;
+      /* ── Header ─────────────────────────────────────────────────── */
+      header {
+        margin-bottom: 34px;
       }
 
       h1 {
-        font-family: var(--display);
-        font-variation-settings:
-          "opsz" 120,
-          "SOFT" 28,
-          "WONK" 1;
-        font-weight: 480;
-        font-size: clamp(2.5rem, 9vw, 3.9rem);
-        line-height: 0.94;
-        letter-spacing: -0.022em;
+        font-size: clamp(1.42rem, 5.1vw, 2.05rem);
+        font-weight: 800;
+        letter-spacing: -0.038em;
+        line-height: 1.12;
         margin: 0;
       }
 
-      h1 em {
-        font-style: italic;
-        font-weight: 350;
+      /* One line once there is room for it. */
+      @media (min-width: 530px) {
+        h1 {
+          white-space: nowrap;
+        }
+      }
+
+      h1 span {
+        color: var(--green-ink);
+      }
+
+      .underline {
         display: block;
-        color: var(--ink-soft);
-        font-variation-settings:
-          "opsz" 120,
-          "SOFT" 60,
-          "WONK" 1;
+        width: min(440px, 96%);
+        margin: 4px 0 0 -4px;
+        overflow: visible;
       }
 
-      .double-rule {
-        margin: 26px 0 18px;
-        border-top: 1.5px solid var(--ink);
-        border-bottom: 1px solid var(--rule);
-        height: 4px;
+      .underline path {
+        stroke: var(--green);
+        stroke-width: 7;
+        stroke-linecap: round;
+        fill: none;
+        stroke-dasharray: 420;
+        stroke-dashoffset: 420;
+        animation: draw 1s var(--ease) 0.35s forwards;
       }
 
-      /* ── Class legend ───────────────────────────────────────────── */
-      .legend {
-        list-style: none;
+      .underline circle {
+        fill: var(--green);
+        opacity: 0;
+        animation: pop 0.3s var(--ease) 1.2s forwards;
+      }
+
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes pop {
+        to {
+          opacity: 1;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .underline path {
+          stroke-dashoffset: 0;
+          animation: none;
+        }
+        .underline circle {
+          opacity: 1;
+          animation: none;
+        }
+      }
+
+      .hand {
+        font-family: var(--hand);
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--grey);
+        margin: 14px 0 0;
+        line-height: 1.25;
+      }
+
+      .chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px 20px;
+        gap: 8px;
+        list-style: none;
         padding: 0;
-        margin: 0;
+        margin: 22px 0 0;
       }
 
-      .legend li {
+      .chips li {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-family: var(--mono);
-        font-size: 0.72rem;
-        letter-spacing: 0.05em;
-        color: var(--ink-soft);
+        gap: 7px;
+        background: #f6f9f7;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 14px 6px 11px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--grey);
       }
 
-      .swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: 2px;
-        box-shadow: 0 0 0 1px rgba(28, 38, 32, 0.18);
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
       }
-      .swatch.early {
+      .dot.early {
         background: var(--early);
       }
-      .swatch.late {
+      .dot.late {
         background: var(--late);
       }
-      .swatch.healthy {
+      .dot.healthy {
         background: var(--healthy);
       }
 
-      /* ── Plate cards ────────────────────────────────────────────── */
-      .plate {
-        position: relative;
-        background: var(--paper-raised);
-        border: 1px solid var(--rule);
-        border-radius: 3px;
-        padding: 26px 24px 24px;
-        margin-top: 30px;
-        box-shadow: var(--shadow-plate);
+      /* ── Cards ──────────────────────────────────────────────────── */
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 18px 40px -30px rgba(20, 32, 26, 0.55);
       }
 
-      /* Inset hairline — the second frame of a specimen mount. */
-      .plate::after {
-        content: "";
-        position: absolute;
-        inset: 6px;
-        border: 1px solid var(--rule-fine);
-        border-radius: 1px;
-        pointer-events: none;
-      }
-
-      .plate > * {
-        position: relative;
-        z-index: 1;
-      }
-
-      .plate-label {
-        position: absolute;
-        top: -8px;
-        left: 20px;
-        z-index: 2;
-        background: var(--paper-raised);
-        padding: 0 9px;
-        font-family: var(--mono);
-        font-size: 0.63rem;
-        font-weight: 600;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
+      .card + .card {
+        margin-top: 18px;
       }
 
       /* ── Drop zone ──────────────────────────────────────────────── */
       .drop {
         display: block;
-        border: 1.5px dashed var(--rule);
-        border-radius: 2px;
-        background: var(--paper-sunk);
-        padding: 34px 20px;
+        border: 2px dashed #cfe6da;
+        border-radius: 18px;
+        background: #fafdfb;
+        padding: 44px 20px;
         text-align: center;
         cursor: pointer;
         transition:
-          border-color 0.25s,
-          background 0.25s,
-          transform 0.25s;
+          border-color 0.22s,
+          background 0.22s,
+          transform 0.22s;
       }
 
       .drop:hover,
       .drop:focus-within {
-        border-color: var(--healthy);
-        background: #eee9db;
+        border-color: var(--green);
+        background: var(--mint);
       }
 
       .drop.dragging {
-        border-color: var(--healthy);
-        background: #e7eee0;
-        transform: scale(1.008);
+        border-color: var(--green);
+        background: var(--mint-2);
+        transform: scale(1.01);
       }
 
       .drop.has-file {
-        padding: 14px;
+        padding: 10px;
         border-style: solid;
-        text-align: left;
+        border-color: var(--line);
+        background: #fff;
       }
 
       .drop input[type="file"] {
@@ -289,209 +279,164 @@
       }
 
       .drop-icon {
-        display: block;
-        margin: 0 auto 12px;
-        color: var(--ink-faint);
+        color: var(--green);
+        margin-bottom: 10px;
       }
 
       .drop-title {
-        font-family: var(--display);
-        font-variation-settings:
-          "opsz" 30,
-          "SOFT" 40;
-        font-size: 1.16rem;
-        font-weight: 500;
+        font-size: 1.02rem;
+        font-weight: 700;
         margin: 0 0 3px;
       }
 
       .drop-hint {
-        font-family: var(--mono);
-        font-size: 0.68rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
+        font-family: var(--hand);
+        font-size: 1.14rem;
+        color: var(--grey-soft);
         margin: 0;
       }
 
-      /* Mounted specimen preview */
-      .mount {
+      figure {
         margin: 0;
         display: none;
       }
-
-      .drop.has-file .mount {
+      .drop.has-file figure {
         display: block;
       }
       .drop.has-file .drop-prompt {
         display: none;
       }
 
-      .mount img {
+      figure img {
         display: block;
         width: 100%;
-        max-height: 320px;
+        max-height: 330px;
         object-fit: contain;
-        background: #e2dac9;
-        border: 1px solid var(--rule);
+        background: #f2f6f4;
+        border-radius: 12px;
       }
 
-      .mount figcaption {
+      figcaption {
         display: flex;
         justify-content: space-between;
         gap: 12px;
-        font-family: var(--mono);
-        font-size: 0.66rem;
-        letter-spacing: 0.04em;
-        color: var(--ink-faint);
-        padding-top: 8px;
+        font-size: 0.76rem;
+        font-weight: 500;
+        color: var(--grey-soft);
+        padding: 9px 6px 3px;
       }
 
-      .mount figcaption span:first-child {
+      figcaption span:first-child {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
-      /* ── Button ─────────────────────────────────────────────────── */
+      /* ── Buttons ────────────────────────────────────────────────── */
       .actions {
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin-top: 18px;
-        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 16px;
       }
 
       button {
-        font-family: var(--mono);
-        font-size: 0.76rem;
-        font-weight: 600;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        background: var(--ink);
-        color: var(--paper);
+        font-family: var(--sans);
+        font-size: 0.98rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        background: var(--green);
+        color: #fff;
         border: 0;
-        border-radius: 2px;
-        padding: 14px 26px;
+        border-radius: 999px;
+        padding: 15px 28px;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
         transition:
           transform 0.18s var(--ease),
           box-shadow 0.18s,
-          background 0.2s;
-        box-shadow: 0 6px 16px -10px rgba(28, 38, 32, 0.9);
+          background 0.18s;
+        box-shadow: 0 10px 22px -12px rgba(23, 201, 100, 0.95);
+      }
+
+      button svg {
+        transition: transform 0.22s var(--ease);
       }
 
       button:hover:not(:disabled) {
-        background: #2b3a30;
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px -10px rgba(28, 38, 32, 0.85);
+        background: var(--green-deep);
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px -14px rgba(14, 159, 76, 0.95);
+      }
+
+      button:hover:not(:disabled) svg {
+        transform: translateX(4px);
       }
 
       button:active:not(:disabled) {
-        transform: translateY(1px);
+        transform: translateY(0);
       }
 
       button:disabled {
-        background: var(--ink-faint);
-        cursor: default;
+        background: #c3d6cd;
         box-shadow: none;
+        cursor: default;
       }
 
       button:focus-visible,
       .drop:focus-within {
-        outline: 2px solid var(--healthy);
+        outline: 3px solid rgba(23, 201, 100, 0.4);
         outline-offset: 3px;
       }
 
       .clear {
         background: none;
-        border: 0;
-        color: var(--ink-faint);
-        font-family: var(--mono);
-        font-size: 0.68rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        padding: 4px;
-        cursor: pointer;
+        color: var(--grey-soft);
+        font-size: 0.86rem;
+        font-weight: 600;
+        padding: 12px 16px;
         box-shadow: none;
       }
       .clear:hover {
-        background: none;
+        background: #f4f7f5;
         color: var(--ink);
         transform: none;
         box-shadow: none;
       }
 
-      /* ── Guidance ───────────────────────────────────────────────── */
-      .tips {
-        list-style: none;
-        counter-reset: t;
-        padding: 0;
-        margin: 4px 0 0;
-        display: grid;
-        gap: 10px;
-      }
-
-      .tips li {
-        counter-increment: t;
-        display: grid;
-        grid-template-columns: 26px 1fr;
-        gap: 10px;
-        font-size: 0.9rem;
-        color: var(--ink-soft);
-      }
-
-      .tips li::before {
-        content: counter(t, decimal-leading-zero);
-        font-family: var(--mono);
-        font-size: 0.68rem;
-        color: var(--ink-faint);
-        padding-top: 3px;
-      }
-
       /* ── Result ─────────────────────────────────────────────────── */
-      .verdict-head {
+      .result-head {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 20px;
+        gap: 18px;
         flex-wrap: wrap;
       }
 
-      .tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        font-family: var(--mono);
-        font-size: 0.63rem;
-        font-weight: 600;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
-        margin: 0 0 6px;
-      }
-
       .verdict {
-        font-family: var(--display);
-        font-variation-settings:
-          "opsz" 90,
-          "SOFT" 30,
-          "WONK" 1;
-        font-size: clamp(1.9rem, 6.5vw, 2.6rem);
-        font-weight: 500;
-        line-height: 1.02;
-        letter-spacing: -0.02em;
+        font-size: clamp(1.6rem, 5.6vw, 2.15rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.08;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .verdict .dot {
+        width: 13px;
+        height: 13px;
       }
       .verdict.early {
-        color: var(--early);
+        color: #b57509;
       }
       .verdict.late {
-        color: var(--late);
+        color: #cf3030;
       }
       .verdict.healthy {
-        color: var(--healthy);
+        color: var(--green-ink);
       }
 
       .score {
@@ -499,67 +444,58 @@
         flex-shrink: 0;
       }
 
-      .score-num {
-        font-family: var(--mono);
-        font-size: 2.15rem;
-        font-weight: 500;
+      .score b {
+        display: block;
+        font-size: 1.9rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
         line-height: 1;
-        letter-spacing: -0.03em;
         font-variant-numeric: tabular-nums;
       }
-      .score-num sup {
-        font-size: 0.9rem;
-        top: -0.85em;
-        margin-left: 1px;
-        color: var(--ink-faint);
-      }
 
-      .score-cap {
-        font-family: var(--mono);
-        font-size: 0.6rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
-        margin-top: 4px;
+      .score small {
+        font-family: var(--hand);
+        font-size: 1.06rem;
+        color: var(--grey-soft);
       }
 
       .breakdown {
-        margin-top: 24px;
-        border-top: 1px solid var(--rule-fine);
+        margin-top: 20px;
         padding-top: 18px;
+        border-top: 1px solid var(--line);
         display: grid;
-        gap: 12px;
+        gap: 11px;
       }
 
       .bar {
         display: grid;
-        grid-template-columns: 96px 1fr 56px;
+        grid-template-columns: 92px 1fr 52px;
         gap: 12px;
         align-items: center;
       }
 
       .bar-name {
-        font-size: 0.82rem;
-        color: var(--ink-soft);
-        line-height: 1.2;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--grey);
       }
 
       .track {
         display: block;
         position: relative;
-        background: var(--paper-sunk);
-        border: 1px solid var(--rule-fine);
-        height: 15px;
+        background: #f0f4f2;
+        border-radius: 999px;
+        height: 10px;
         overflow: hidden;
       }
 
-      /* display:block is load-bearing — an inline span ignores width. */
       .fill {
         display: block;
         height: 100%;
         width: 0;
-        transition: width 0.85s var(--ease);
-        background: var(--ink-faint);
+        border-radius: 999px;
+        background: var(--grey-soft);
+        transition: width 0.8s var(--ease);
       }
       .fill.early {
         background: var(--early);
@@ -573,91 +509,73 @@
 
       .thresh {
         position: absolute;
-        top: -1px;
-        bottom: -1px;
-        width: 0;
-        border-left: 1.5px dashed rgba(28, 38, 32, 0.55);
-        pointer-events: none;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(20, 32, 26, 0.28);
+        border-radius: 2px;
       }
 
       .bar-val {
-        font-family: var(--mono);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
+        font-weight: 700;
         text-align: right;
         font-variant-numeric: tabular-nums;
-        color: var(--ink-soft);
+        color: var(--grey);
       }
 
-      .thresh-key {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: var(--mono);
-        font-size: 0.62rem;
-        letter-spacing: 0.05em;
-        color: var(--ink-faint);
-        margin: 4px 0 0;
+      .key {
+        font-family: var(--hand);
+        font-size: 1.08rem;
+        color: var(--grey-soft);
+        margin: 2px 0 0;
         grid-column: 1 / -1;
       }
 
-      .thresh-key i {
-        display: block;
-        width: 0;
-        height: 11px;
-        border-left: 1.5px dashed rgba(28, 38, 32, 0.55);
-      }
-
       /* Inconclusive */
-      .abstain-box {
-        background: var(--amber-wash);
-        border: 1px solid #e2cf9e;
-        border-left: 3px solid var(--amber);
-        padding: 15px 17px;
-        margin-bottom: 4px;
+      .unsure {
+        background: #fffaf0;
+        border: 1px solid #fae7bd;
+        border-radius: 16px;
+        padding: 16px 18px;
       }
 
-      .abstain-box strong {
-        font-family: var(--display);
-        font-variation-settings:
-          "opsz" 30,
-          "SOFT" 40;
-        font-size: 1.14rem;
-        font-weight: 550;
+      .unsure b {
         display: block;
-        margin-bottom: 5px;
-        color: #6d4a08;
+        font-size: 1.12rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #a76a05;
+        margin-bottom: 3px;
       }
 
-      .abstain-box p {
+      .unsure p {
         margin: 0;
-        font-size: 0.87rem;
-        color: #6b5a34;
+        font-size: 0.9rem;
+        color: #8a6a2f;
       }
 
       .err {
-        border-left: 3px solid var(--late);
-        padding-left: 15px;
-        font-size: 0.9rem;
-        color: var(--late);
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #cf3030;
+        margin: 0;
       }
 
-      /* Working state */
       .working {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-family: var(--mono);
-        font-size: 0.72rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--ink-faint);
+        font-family: var(--hand);
+        font-size: 1.25rem;
+        color: var(--grey);
       }
 
       .spinner {
-        width: 13px;
-        height: 13px;
-        border: 1.5px solid var(--rule);
-        border-top-color: var(--ink);
+        width: 15px;
+        height: 15px;
+        border: 2px solid var(--mint-2);
+        border-top-color: var(--green);
         border-radius: 50%;
         animation: spin 0.7s linear infinite;
       }
@@ -668,54 +586,13 @@
         }
       }
 
-      /* ── Colophon ───────────────────────────────────────────────── */
-      footer {
-        margin-top: 44px;
-        padding-top: 20px;
-        border-top: 1px solid var(--rule);
-      }
-
-      .note {
-        font-size: 0.775rem;
-        line-height: 1.65;
-        color: var(--ink-faint);
-        margin: 0 0 14px;
-        max-width: 58ch;
-      }
-
-      .note b {
-        color: var(--ink-soft);
-        font-weight: 600;
-      }
-
-      .stamp {
-        font-family: var(--mono);
-        font-size: 0.62rem;
-        letter-spacing: 0.1em;
-        color: var(--ink-faint);
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 14px;
-      }
-
-      .stamp .ok {
-        color: var(--healthy);
-      }
-      .stamp .bad {
-        color: var(--late);
-      }
-
-      @media (max-width: 440px) {
+      @media (max-width: 430px) {
         main {
-          padding: 38px 16px 72px;
+          padding: 44px 16px 70px;
         }
         .bar {
-          grid-template-columns: 78px 1fr 48px;
+          grid-template-columns: 76px 1fr 46px;
           gap: 9px;
-        }
-        .verdict-head {
-          gap: 12px;
         }
         .score {
           text-align: left;
@@ -725,41 +602,37 @@
   </head>
 
   <body>
-    <div class="grain" aria-hidden="true"></div>
-
     <main>
       <header class="rise">
-        <!-- <p class="eyebrow">Plate 01 · Solanum tuberosum · Foliar diagnosis</p> -->
-        <h1>Potato Leaf<br /><em>Disease Checker</em></h1>
-        <div class="double-rule" role="presentation"></div>
-        <ul class="legend">
-          <li>
-            <span class="swatch early" aria-hidden="true"></span>Early Blight
-          </li>
-          <li>
-            <span class="swatch late" aria-hidden="true"></span>Late Blight
-          </li>
-          <li>
-            <span class="swatch healthy" aria-hidden="true"></span>Healthy
-          </li>
+        <h1>Potato Leaf <span>Disease Classification</span></h1>
+
+        <!-- <svg class="underline" viewBox="0 0 440 16" aria-hidden="true">
+          <path d="M5 11C78 4 240 2.5 402 8" />
+          <circle cx="427" cy="10" r="5" />
+        </svg> -->
+
+        <p class="hand">Snap a leaf, get an answer in a second.</p>
+
+        <ul class="chips">
+          <li><span class="dot early"></span>Early Blight</li>
+          <li><span class="dot late"></span>Late Blight</li>
+          <li><span class="dot healthy"></span>Healthy</li>
         </ul>
       </header>
 
-      <section class="plate rise d1">
-        <span class="plate-label">Specimen</span>
-
+      <section class="card rise d1">
         <label class="drop" id="drop">
           <input type="file" id="file" accept="image/*" capture="environment" />
 
           <div class="drop-prompt">
             <svg
               class="drop-icon"
-              width="34"
-              height="34"
+              width="38"
+              height="38"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.15"
+              stroke-width="1.5"
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
@@ -770,15 +643,13 @@
               <path d="M20.5 3.5 8.2 18.6" />
               <path d="M16.9 8.9 13 8.2" />
               <path d="M14.2 12.4 10.3 11.7" />
-              <path d="M17.6 5.6 16.9 9.5" />
-              <path d="M13.6 10.6 12.9 14.5" />
             </svg>
-            <p class="drop-title">Drop a leaf photograph here</p>
-            <p class="drop-hint">or click to browse · paste with ⌘V / Ctrl-V</p>
+            <p class="drop-title">Drop a leaf photo here</p>
+            <p class="drop-hint">or tap to browse — you can paste one too</p>
           </div>
 
-          <figure class="mount">
-            <img id="preview" alt="Selected leaf photograph" />
+          <figure>
+            <img id="preview" alt="Selected leaf photo" />
             <figcaption>
               <span id="fname"></span><span id="fsize"></span>
             </figcaption>
@@ -786,36 +657,27 @@
         </label>
 
         <div class="actions">
-          <button id="go" type="button">Analyse specimen</button>
+          <button id="go" type="button">
+            Classify
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </button>
           <button class="clear" id="clear" type="button" hidden>Clear</button>
         </div>
       </section>
 
       <div id="out" aria-live="polite"></div>
-
-      <section class="plate rise d2">
-        <span class="plate-label">Method notes</span>
-        <ol class="tips">
-          <li>One leaf, centred and filling most of the frame.</li>
-          <li>Plain background where possible — soil, a hand, or paper.</li>
-          <li>Even daylight. No harsh shadow falling across the blade.</li>
-          <li>Focus on the lesion if there is one.</li>
-        </ol>
-      </section>
-
-      <footer class="rise d3">
-        <p class="note">
-          <b>Research prototype.</b> Trained on 2,152 laboratory images of
-          potato leaves. Accuracy on real field photographs is unverified — and
-          measuring it is precisely what this tool collects data for. The
-          percentage shown is a relative model score, not a calibrated
-          probability. Not a substitute for agronomic advice. Uploaded images
-          are stored for evaluation.
-        </p>
-        <p class="stamp" id="stamp">
-          <span>Checking model…</span>
-        </p>
-      </footer>
     </main>
 
     <script>
@@ -827,8 +689,7 @@
         outEl = $("out"),
         prevEl = $("preview"),
         fnameEl = $("fname"),
-        fsizeEl = $("fsize"),
-        stampEl = $("stamp");
+        fsizeEl = $("fsize");
 
       const MAX_BYTES = 10 * 1024 * 1024;
       let THRESHOLD = 0.9;
@@ -839,7 +700,7 @@
         "Late Blight": "late",
         Healthy: "healthy",
       };
-      const cls = (label) => KEY[label] || "";
+      const cls = (l) => KEY[l] || "";
       const esc = (s) =>
         String(s).replace(
           /[&<>"']/g,
@@ -853,44 +714,28 @@
             })[c],
         );
       const kb = (n) =>
-        n < 1024 * 1024
+        n < 1048576
           ? (n / 1024).toFixed(0) + " KB"
           : (n / 1048576).toFixed(1) + " MB";
 
-      /* ── Model provenance in the colophon ───────────────────────── */
+      /* Threshold comes from the server so the marker never lies. */
       fetch("/health")
         .then((r) => r.json())
         .then((h) => {
           if (typeof h.threshold === "number") THRESHOLD = h.threshold;
-          stampEl.innerHTML =
-            '<span class="ok">● model loaded</span>' +
-            "<span>" +
-            esc(h.checkpoint || "checkpoint") +
-            "</span>" +
-            "<span>preprocessing: " +
-            esc(h.aug_mode) +
-            "</span>" +
-            "<span>abstains below " +
-            (THRESHOLD * 100).toFixed(0) +
-            "%</span>";
         })
-        .catch(() => {
-          stampEl.innerHTML = '<span class="bad">● server unreachable</span>';
-        });
+        .catch(() => {});
 
-      /* ── File selection ─────────────────────────────────────────── */
+      /* ── File handling ──────────────────────────────────────────── */
       function showFile(f) {
         if (!f) return reset();
-        if (!f.type.startsWith("image/")) {
-          return renderError("That is not an image file.");
-        }
-        if (f.size > MAX_BYTES) {
+        if (!f.type.startsWith("image/"))
+          return renderError("That file isn't an image.");
+        if (f.size > MAX_BYTES)
           return renderError(
-            "Image is " +
-              kb(f.size) +
-              ". The limit is 10 MB — please resize it.",
+            "That photo is " + kb(f.size) + " — the limit is 10 MB.",
           );
-        }
+
         if (objectUrl) URL.revokeObjectURL(objectUrl);
         objectUrl = URL.createObjectURL(f);
         prevEl.src = objectUrl;
@@ -911,13 +756,19 @@
         outEl.innerHTML = "";
       }
 
+      function adopt(f) {
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        fileEl.files = dt.files;
+        showFile(f);
+      }
+
       fileEl.onchange = () => showFile(fileEl.files[0]);
       clearEl.onclick = (e) => {
         e.preventDefault();
         reset();
       };
 
-      /* Drag and drop */
       ["dragenter", "dragover"].forEach((ev) =>
         dropEl.addEventListener(ev, (e) => {
           e.preventDefault();
@@ -932,44 +783,27 @@
       );
       dropEl.addEventListener("drop", (e) => {
         const f = e.dataTransfer.files[0];
-        if (f) {
-          const dt = new DataTransfer();
-          dt.items.add(f);
-          fileEl.files = dt.files;
-          showFile(f);
-        }
+        if (f) adopt(f);
       });
 
-      /* Paste from clipboard */
       window.addEventListener("paste", (e) => {
-        const item = [...(e.clipboardData?.items || [])].find((i) =>
+        const it = [...(e.clipboardData?.items || [])].find((i) =>
           i.type.startsWith("image/"),
         );
-        if (!item) return;
-        const f = item.getAsFile();
-        const dt = new DataTransfer();
-        dt.items.add(f);
-        fileEl.files = dt.files;
-        showFile(f);
+        if (it) adopt(it.getAsFile());
       });
 
       /* ── Rendering ──────────────────────────────────────────────── */
-      function plate(inner, label) {
-        outEl.innerHTML =
-          '<section class="plate"><span class="plate-label">' +
-          label +
-          "</span>" +
-          inner +
-          "</section>";
-      }
+      const card = (inner) =>
+        (outEl.innerHTML = '<section class="card">' + inner + "</section>");
 
       function renderError(msg) {
-        plate('<p class="err">' + esc(msg) + "</p>", "Error");
+        card('<p class="err">' + esc(msg) + "</p>");
       }
 
       function bars(probs) {
-        const entries = Object.entries(probs).sort((a, b) => b[1] - a[1]);
-        const rows = entries
+        const rows = Object.entries(probs)
+          .sort((a, b) => b[1] - a[1])
           .map(
             ([k, v]) =>
               '<div class="bar"><span class="bar-name">' +
@@ -981,16 +815,16 @@
               '"></span><span class="thresh" style="left:' +
               (THRESHOLD * 100).toFixed(1) +
               '%"></span></span><span class="bar-val">' +
-              (v * 100).toFixed(1) +
+              (v > 0 && v < 0.005 ? "&lt;1" : (v * 100).toFixed(0)) +
               "%</span></div>",
           )
           .join("");
         return (
           '<div class="breakdown">' +
           rows +
-          '<p class="thresh-key"><i></i>' +
+          '<p class="key">the line marks ' +
           (THRESHOLD * 100).toFixed(0) +
-          "% reporting threshold</p></div>"
+          "% — below it, no call is made</p></div>"
         );
       }
 
@@ -1005,47 +839,39 @@
       function renderResult(d) {
         const c = cls(d.label);
         const body = d.abstain
-          ? '<div class="abstain-box"><strong>Inconclusive</strong>' +
-            "<p>Closest match is <b>" +
+          ? '<div class="unsure"><b>Not sure about this one</b><p>Closest is ' +
             esc(d.label) +
-            "</b> at " +
-            (d.confidence * 100).toFixed(1) +
-            "%, below the " +
+            " at " +
+            (d.confidence * 100).toFixed(0) +
+            "%, under the " +
             (THRESHOLD * 100).toFixed(0) +
-            "% threshold this model reports at. Retake with the leaf centred and more evenly lit.</p></div>" +
+            "% mark. Try again with the leaf centred and better lit.</p></div>" +
             bars(d.probs)
-          : '<div class="verdict-head"><div>' +
-            '<p class="tag"><span class="swatch ' +
+          : '<div class="result-head">' +
+            '<h2 class="verdict ' +
             c +
-            '"></span>Diagnosis</p>' +
-            '<p class="verdict ' +
+            '"><span class="dot ' +
             c +
-            '">' +
+            '"></span>' +
             esc(d.label) +
-            "</p></div>" +
-            '<div class="score"><div class="score-num">' +
-            (d.confidence * 100).toFixed(1) +
-            "<sup>%</sup></div>" +
-            '<div class="score-cap">model score</div></div></div>' +
+            "</h2>" +
+            '<div class="score"><b>' +
+            (d.confidence * 100).toFixed(0) +
+            "%</b><small>sure</small></div></div>" +
             bars(d.probs);
 
-        plate(body, d.abstain ? "Result · inconclusive" : "Result");
+        card(body);
         animateBars();
       }
 
       /* ── Submit ─────────────────────────────────────────────────── */
       goEl.onclick = async () => {
         const f = fileEl.files[0];
-        if (!f) {
-          renderError("Choose or drop a leaf photograph first.");
-          return;
-        }
+        if (!f) return renderError("Pick a leaf photo first.");
 
         goEl.disabled = true;
-        goEl.textContent = "Analysing";
-        plate(
-          '<div class="working"><span class="spinner"></span>Running inference</div>',
-          "Working",
+        card(
+          '<div class="working"><span class="spinner"></span>Having a look…</div>',
         );
 
         const fd = new FormData();
@@ -1054,23 +880,18 @@
         try {
           const r = await fetch("/predict", { method: "POST", body: fd });
           if (r.status === 413) {
-            renderError("Image too large — the server accepts up to 10 MB.");
+            renderError("Too large — the server accepts up to 10 MB.");
           } else if (!r.ok && r.status >= 500) {
-            renderError(
-              "Server error " +
-                r.status +
-                ". Check the terminal running app.py.",
-            );
+            renderError("Server error " + r.status + ". Check the terminal.");
           } else {
             const d = await r.json();
             if (d.error) renderError(d.error);
             else renderResult(d);
           }
         } catch (e) {
-          renderError("Request failed — is the server still running?");
+          renderError("Couldn't reach the server — is it still running?");
         } finally {
           goEl.disabled = false;
-          goEl.textContent = "Analyse specimen";
         }
       };
     </script>
