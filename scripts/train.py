@@ -1,13 +1,4 @@
-"""Two-stage transfer learning with stratified group 5-fold cross-validation.
 
-Stage 1 trains the classifier head on a frozen backbone; stage 2 unfreezes the
-late blocks at a low learning rate. Each fold writes best.pt, history.csv and
-oof_preds.csv to its own directory; pooled across folds, oof_preds.csv gives one
-held-out prediction per image in the dataset.
-
-    python train.py --smoke          # end-to-end dry run, ~1 min
-    python train.py                  # full 5-fold CV, ~20 min on a T4
-"""
 import argparse
 import copy
 import random
@@ -36,9 +27,8 @@ def set_seed(seed=C.SEED):
     torch.cuda.manual_seed_all(seed)
 
 
-# ── Epoch primitives ──────────────────────────────────────────────────────
+#  Epoch primitives 
 def train_one_epoch(model, loader, criterion, optimizer, scaler=None):
-    """One pass with weight updates. Returns mean training loss."""
     model.train()                                   # BN guard fires here
     total, n = 0.0, 0
 
@@ -66,11 +56,6 @@ def train_one_epoch(model, loader, criterion, optimizer, scaler=None):
 
 @torch.no_grad()
 def evaluate(model, loader, criterion):
-    """No-update pass. Returns (metrics, probs, ys).
-
-    Loader order is fixed (shuffle=False), so probs rows align with the loader's
-    dataset -- that alignment is what makes the OOF predictions joinable to paths.
-    """
     model.eval()
     total, n, P, Y = 0.0, 0, [], []
 
@@ -101,7 +86,7 @@ def evaluate(model, loader, criterion):
     return metrics, probs, ys
 
 
-# ── Stage loop ────────────────────────────────────────────────────────────
+#  Stage loop
 def run_stage(model, train_loader, val_loader, criterion, optimizer, scaler,
               epochs, stage, patience=C.EARLY_STOP_PATIENCE, fold=None,
               verbose=True):
@@ -151,7 +136,7 @@ def run_stage(model, train_loader, val_loader, criterion, optimizer, scaler,
     return history, best_epoch, best_loss
 
 
-# ── Run directories ───────────────────────────────────────────────────────
+#  Run directories 
 def make_run_dir(aug_mode=None, tag=None):
     """results/runs/<timestamp>_<aug_mode>/ -- one per configuration."""
     aug = aug_mode or C.AUG_MODE
@@ -173,13 +158,8 @@ def fold_done(run_dir, fold):
     return all((d / f).exists() for f in ("best.pt", "history.csv", "oof_preds.csv"))
 
 
-# ── Fold ──────────────────────────────────────────────────────────────────
+#  Fold
 def run_fold(df, fold, run_dir, smoke=False, verbose=True):
-    """Stage 1 -> stage 2 -> one held-out evaluation. Writes 3 files, returns a row.
-
-    A fresh model per fold is mandatory: carrying weights across folds would mean
-    later folds have already seen their own held-out images.
-    """
     d = fold_dir(run_dir, fold)
     set_seed(C.SEED + fold)
 
@@ -190,30 +170,25 @@ def run_fold(df, fold, run_dir, smoke=False, verbose=True):
     scaler = torch.amp.GradScaler(enabled=AMP)
 
     if verbose:
-        print(f"\n── fold {fold} ──  train {len(tl.dataset)}  "
+        print(f"\n── fold {fold}   train {len(tl.dataset)}  "
               f"val {len(vl.dataset)}  eval {len(el.dataset)}")
 
-    # stage 1: head only, frozen backbone
     opt = torch.optim.AdamW(M.param_groups(net, stage=1), weight_decay=1e-4)
     h1, be1, bl1 = run_stage(net, tl, vl, crit, opt, scaler,
                              epochs=1 if smoke else C.EPOCHS_HEAD,
                              stage=1, fold=fold, verbose=verbose)
 
-    # stage 2: the optimizer MUST be rebuilt -- it was constructed over stage 1's
-    # trainable params, so newly unfrozen weights would otherwise never update
+
     M.set_stage(net, stage=2)
     opt = torch.optim.AdamW(M.param_groups(net, stage=2), weight_decay=1e-4)
     h2, be2, bl2 = run_stage(net, tl, vl, crit, opt, scaler,
                              epochs=1 if smoke else C.EPOCHS_TUNE,
                              stage=2, fold=fold, verbose=verbose)
 
-    # held-out fold: first and only look
     test, probs, ys = evaluate(net, el, crit)
 
     pd.DataFrame(h1 + h2).to_csv(d / "history.csv", index=False)
-
-    # paths come from the loader's own dataset, not a re-derived index -- smoke
-    # mode subsamples, and any drift here silently misjoins predictions to files
+    
     paths = el.dataset.paths
     assert len(paths) == len(ys), f"path/label mismatch: {len(paths)} vs {len(ys)}"
     assert (el.dataset.ys == ys).all(), "loader order changed between build and eval"
@@ -238,7 +213,7 @@ def run_fold(df, fold, run_dir, smoke=False, verbose=True):
     return row
 
 
-# ── Cross-validation ──────────────────────────────────────────────────────
+#  Cross-validation 
 def run_cv(run_dir=None, folds=None, smoke=False, verbose=True):
     """All folds, resumable. summary.csv is rewritten as each fold completes."""
     D.setup_data(verbose=verbose)

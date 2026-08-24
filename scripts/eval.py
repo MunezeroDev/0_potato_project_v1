@@ -1,10 +1,4 @@
-"""Analysis of finished cross-validation runs: pooled metrics and Grad-CAM.
 
-Reads artifacts written by train.py and never trains anything, so it runs in
-seconds on CPU against any completed run directory.
-
-    python eval.py results/runs/20260821_2337_baseline
-"""
 import argparse
 from pathlib import Path
 
@@ -29,14 +23,9 @@ MEAN = np.array(C.IMAGENET_MEAN).reshape(3, 1, 1)
 STD = np.array(C.IMAGENET_STD).reshape(3, 1, 1)
 
 
-# ── Pooling ───────────────────────────────────────────────────────────────
+# Pooling 
 def pool_oof(run_dir, n_folds=C.N_FOLDS, verify=True):
-    """Stack per-fold OOF predictions into one row-per-image frame.
 
-    Every image appears exactly once, predicted by a model that never trained on
-    it. A duplicate path means folds overlapped and every metric below is
-    inflated, so it is checked rather than assumed.
-    """
     run_dir = Path(run_dir)
     oof = pd.concat(
         [pd.read_csv(run_dir / f"fold_{k}" / "oof_preds.csv") for k in range(n_folds)],
@@ -51,15 +40,13 @@ def pool_oof(run_dir, n_folds=C.N_FOLDS, verify=True):
     return oof
 
 
-# ── Metrics ───────────────────────────────────────────────────────────────
+# Metrics 
 def report(oof, summary=None, verbose=True):
     """Confusion matrix, per-class metrics, error breakdown. Returns a dict."""
     y_true, y_pred = oof.y_true.values, oof.y_pred.values
     cm = confusion_matrix(y_true, y_pred, labels=range(C.NUM_CLASSES))
     errs = oof[oof.y_pred != oof.y_true]
 
-    # in an advisory context these two are not symmetric: a missed disease
-    # spreads, a false alarm costs one wasted inspection
     missed = int(((errs.y_true != 2) & (errs.y_pred == 2)).sum())
     false_alarm = int(((errs.y_true == 2) & (errs.y_pred != 2)).sum())
 
@@ -105,17 +92,8 @@ def report(oof, summary=None, verbose=True):
     return out
 
 
-# ── Grad-CAM ──────────────────────────────────────────────────────────────
+# Grad-CAM 
 class GradCAM:
-    """Class-discriminative heatmaps from the last spatial layer.
-
-    Weights each feature map by how strongly the class score responds to it,
-    sums them, keeps positive evidence only, and upsamples to image size.
-
-    Shows WHERE the model drew evidence, never WHAT feature it used -- a model
-    keying on a whole-image colour cast produces on-leaf maps indistinguishable
-    from one reading lesions. Spatial shortcuts only.
-    """
 
     def __init__(self, model, layer):
         self.model, self.acts, self.grads = model, None, None
@@ -237,7 +215,7 @@ def plot_errors(engine, tf_eval, oof, fold=0, save=None):
     return fig
 
 
-# ── Entry point ───────────────────────────────────────────────────────────
+# Entry point 
 def analyse(run_dir, fold=0, figures=True, verbose=True):
     """Pool, report, and optionally write Grad-CAM figures into the run folder."""
     run_dir = Path(run_dir)

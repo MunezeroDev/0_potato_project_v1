@@ -1,9 +1,3 @@
-"""Data pipeline: session restore, manifest, folds, transforms, loaders.
-
-Nothing here reads the raw image folders for bookkeeping — manifest.csv is the
-contract. Fold assignment was fixed during the audit (02) and is respected, not
-recomputed, so every experiment compares on identical splits.
-"""
 import random
 import shutil
 
@@ -18,14 +12,9 @@ from torchvision import transforms as T
 import config as C
 
 
-# ── Session bootstrap ─────────────────────────────────────────────────────
+# Session bootstrap 
 def setup_data(verbose=True):
-    """Restore the local working copy from Drive and normalise folder names.
 
-    Idempotent — safe to call at the top of every script. Drive is never
-    modified; only the local copy is renamed to the Potato___* convention
-    the manifest expects.
-    """
     if not (C.DATA_ROOT.exists() and any(C.DATA_ROOT.iterdir())):
         if verbose:
             print(f"restoring {C.SOURCE} -> {C.DATA_ROOT}")
@@ -45,9 +34,8 @@ def setup_data(verbose=True):
     return C.DATA_ROOT
 
 
-# ── Manifest ──────────────────────────────────────────────────────────────
+#  Manifest
 def load_manifest(verify=True):
-    """Return the keep-filtered manifest with an integer label column `y`."""
     df = pd.read_csv(C.MANIFEST)
     df["y"] = df.label.map(C.CLASS_TO_IDX)
 
@@ -66,14 +54,9 @@ def load_manifest(verify=True):
     return df
 
 
-# ── Splits ────────────────────────────────────────────────────────────────
+#  Splits 
 def get_indices(df, fold, seed=C.SEED):
-    """Row positions into df: (train, inner_val, eval).
-
-    eval is the held-out fold and is never used for model selection. The inner
-    validation slice is carved from the four training folds, group-aware, and
-    is what early stopping watches.
-    """
+ 
     ev = np.flatnonzero(df.fold.values == fold)
     pool = np.flatnonzero(df.fold.values != fold)
 
@@ -85,7 +68,6 @@ def get_indices(df, fold, seed=C.SEED):
 
 
 def check_fold(df, fold, seed=C.SEED):
-    """Assert no group or path leaks between train / val / eval."""
     tr, va, ev = get_indices(df, fold, seed)
     G, P = df.group_id.values, df.path.values
 
@@ -100,14 +82,8 @@ def check_fold(df, fold, seed=C.SEED):
     return len(tr), len(va), len(ev)
 
 
-# ── Transforms ────────────────────────────────────────────────────────────
 class GreyWorld:
-    """Neutralise per-image colour cast — targets the acquisition confound.
-
-    Preprocessing, not augmentation: when enabled it must apply to eval too.
-    """
-
-    def __call__(self, x):                       # float tensor [3,H,W] in [0,1]
+    def __call__(self, x):                      
         m = x.mean(dim=(1, 2), keepdim=True)
         return (x * m.mean() / m.clamp(min=1e-6)).clamp(0, 1)
 
@@ -141,7 +117,7 @@ def build_transforms(mode=None):
     return train, evaluate
 
 
-# ── Dataset ───────────────────────────────────────────────────────────────
+# Dataset 
 class PotatoDataset(Dataset):
     def __init__(self, frame, indices, root=None, transform=None):
         self.paths = frame.path.values[indices]
@@ -158,7 +134,7 @@ class PotatoDataset(Dataset):
         return x, int(self.ys[i])
 
 
-# ── Imbalance ─────────────────────────────────────────────────────────────
+# Imbalance 
 def class_weights(ys, n=C.NUM_CLASSES):
     """sklearn 'balanced' convention: n_samples / (n_classes * count)."""
     counts = np.bincount(ys, minlength=n).astype("float64")
@@ -173,7 +149,7 @@ def make_sampler(ys, n=C.NUM_CLASSES):
                                  num_samples=len(ys), replacement=True)
 
 
-# ── Loaders ───────────────────────────────────────────────────────────────
+# Loaders
 def _seed_worker(worker_id):
     s = torch.initial_seed() % 2 ** 32
     np.random.seed(s)

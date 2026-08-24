@@ -1,9 +1,4 @@
-"""MobileNetV3-Large builder, two-stage freeze control, checkpoint I/O.
 
-Stage 1 trains the head on a frozen backbone; stage 2 additionally unfreezes
-features[UNFREEZE_FROM:]. BatchNorm running statistics are held fixed wherever
-the surrounding weights are frozen -- see _install_bn_guard.
-"""
 import types
 from pathlib import Path
 
@@ -13,16 +8,11 @@ from torchvision import models
 
 import config as C
 
-UNFREEZE_FROM = 12          # stage 2 unfreezes features[12:] + classifier
+UNFREEZE_FROM = 12       
 
 
-# ── Build ─────────────────────────────────────────────────────────────────
+# Build
 def build_model(num_classes=C.NUM_CLASSES, pretrained=True, dropout=0.2):
-    """ImageNet-pretrained MobileNetV3-Large with the final layer resized.
-
-    Only classifier[3] is replaced; the 960->1280 projection is pretrained
-    feature machinery, not an ImageNet label mapping, and is kept.
-    """
     weights = models.MobileNet_V3_Large_Weights.IMAGENET1K_V1 if pretrained else None
     m = models.mobilenet_v3_large(weights=weights)
 
@@ -32,7 +22,7 @@ def build_model(num_classes=C.NUM_CLASSES, pretrained=True, dropout=0.2):
     return m
 
 
-# ── Stage control ─────────────────────────────────────────────────────────
+# Stage control 
 def set_stage(model, stage, unfreeze_from=UNFREEZE_FROM):
     """stage 1 = head only (backbone frozen). stage 2 = head + late blocks."""
     if stage not in (1, 2):
@@ -54,17 +44,6 @@ def set_stage(model, stage, unfreeze_from=UNFREEZE_FROM):
 
 
 def _install_bn_guard(model):
-    """Override .train() so frozen BatchNorm layers never update running stats.
-
-    requires_grad=False stops gradients but NOT the running mean/var update,
-    which happens on every forward pass in training mode. Left unhandled, a
-    'frozen' backbone drifts its normalisation statistics away from the weights
-    that were tuned against them -- silent, and it only shows up as validation
-    metrics that are inexplicably worse than training.
-
-    Wired into .train() rather than the training loop because .train() is called
-    every epoch and this must hold every time.
-    """
     if getattr(model, "_bn_guard", False):
         return model
 
@@ -92,13 +71,8 @@ def count_params(model):
     return tr, fz
 
 
-# ── Optimizer groups ──────────────────────────────────────────────────────
+# Optimizer groups 
 def param_groups(model, stage, lr_head=C.LR_HEAD, lr_backbone=C.LR_BACKBONE):
-    """Trainable params only, split so stage 2 moves the backbone slower.
-
-    Passing frozen tensors to the optimizer allocates state for parameters that
-    never update, so this filters on requires_grad.
-    """
     head = [p for p in model.classifier.parameters() if p.requires_grad]
     back = [p for p in model.features.parameters() if p.requires_grad]
 
@@ -109,13 +83,8 @@ def param_groups(model, stage, lr_head=C.LR_HEAD, lr_backbone=C.LR_BACKBONE):
     return groups
 
 
-# ── Checkpoints ───────────────────────────────────────────────────────────
+# Checkpoints
 def save_checkpoint(path, model, *, fold, stage, epoch, metrics, aug_mode=None):
-    """Weights plus everything needed to reload and serve them correctly.
-
-    class_to_idx and aug_mode live inside the file deliberately: the serving
-    API must not depend on a separate mapping that can drift out of sync.
-    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({
@@ -135,7 +104,6 @@ def save_checkpoint(path, model, *, fold, stage, epoch, metrics, aug_mode=None):
 
 
 def load_checkpoint(path, device=None):
-    """Rebuild the model (no weight download) and restore. Returns (model, meta)."""
     ck = torch.load(path, map_location=device or "cpu", weights_only=False)
     if ck["class_to_idx"] != C.CLASS_TO_IDX:
         raise ValueError(f"class mapping mismatch: {ck['class_to_idx']}")
