@@ -39,6 +39,7 @@ PUBLIC_WEBHOOK_URL = os.environ.get("PUBLIC_WEBHOOK_URL", "")
 
 
 # Internal model API (serve/app.py)
+PREDICT_URL = os.environ.get("PREDICT_URL", "http://127.0.0.1:5000/predict")
 HEALTH_URL = os.environ.get("HEALTH_URL", "http://127.0.0.1:5000/health")
 PREDICT_TIMEOUT = _float("PREDICT_TIMEOUT", 120.0)
 
