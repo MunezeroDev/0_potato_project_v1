@@ -49,6 +49,7 @@ scripts/train.py
 WhatsApp/README.md
 WhatsApp/requirements.txt
 WhatsApp/tests
+WhatsApp/.env.example
 .env
 __pycache__/
 *.py[cod]
