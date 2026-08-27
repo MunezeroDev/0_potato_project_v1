@@ -40,7 +40,7 @@ CKPT = _find_checkpoint()
 
 _model, _meta = load_checkpoint(CKPT, device=DEVICE)
 
-# ── Serving config, taken from the checkpoint ────────────────────────────
+# Serving config, taken from the checkpoint 
 AUG_MODE = _meta["aug_mode"]
 _, _tf = D.build_transforms(AUG_MODE)          # eval pipeline only
 
