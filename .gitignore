@@ -39,9 +39,17 @@ temp.md
 GIT_SETUP.md
 
 # Temporary Ignoring the .py files 
-scripts/
-config.py 
-data.py
-eval.py 
-model.py
-train.py
+scripts/config.py 
+scripts/data.py
+scripts/eval.py 
+scripts/model.py 
+scripts/train.py
+
+# WhatsApp Ignores
+WhatsApp/README.md
+WhatsApp/requirements.txt
+WhatsApp/tests
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/

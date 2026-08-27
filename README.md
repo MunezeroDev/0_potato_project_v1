@@ -76,6 +76,17 @@ per-class breakdown.
 Below 0.90 confidence it declines to call the result rather than guessing.
 ```
 
+## WhatsApp bot
+
+The same classifier is also reachable over WhatsApp, via the Twilio WhatsApp
+sandbox. Send a leaf photo to the sandbox number and the bot replies with the
+same prediction the web page gives.
+
+The bot lives in `WhatsApp/` and holds no model code. It downloads the photo
+from Twilio, normalises it, and calls the existing `POST /predict` endpoint in
+`serve/` over HTTP, so the model stays behind one internal API with two front
+ends. Setup, run order and the ngrok caveat are in `WhatsApp/README.md`.
+
 Every submission is saved to `results/uploads/` with a row in `log.csv`. This is
 deliberate, so real-world performance can be measured later against the lab-image
 training set.
