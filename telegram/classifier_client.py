@@ -1,5 +1,5 @@
-"""Thin HTTP client for the internal model API (serve/app.py).
-"""
+
+# Thin HTTP client for the internal model API (serve/app.py).
 from __future__ import annotations
 
 import logging

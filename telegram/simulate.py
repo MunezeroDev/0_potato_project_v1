@@ -1,10 +1,4 @@
-"""Test the bot with a photo from disk. No Telegram account, no network.
 
-    python simulate.py "..\\results\\uploads\\3d76551299be.jpg"
-    python simulate.py "..\\results\\uploads\\3d76551299be.jpg" --fake-model
-
-Prints the exact four messages a sender would receive.
-"""
 from __future__ import annotations
 
 import argparse

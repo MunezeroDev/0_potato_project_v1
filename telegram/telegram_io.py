@@ -26,16 +26,21 @@ class MediaError(RuntimeError):
 
 
 # ── Low-level call ───────────────────────────────────────────────────────
-def _api(method: str, timeout: float = 20.0, **params) -> dict:
-    """POST one Bot API method and return its `result`."""
+def _api(method: str, _timeout: float = 20.0, **params) -> dict:
+    """POST one Bot API method and return its `result`.
+
+    `_timeout` is how long to wait on the socket, and is deliberately
+    underscore-prefixed: the Bot API has its own `timeout` parameter (getUpdates
+    uses it for long polling), and without the underscore the two collide.
+    """
     if not config.BOT_TOKEN:
         raise TelegramError("TELEGRAM_BOT_TOKEN is not set.")
 
     url = f"{config.API_BASE}/{method}"
     try:
-        r = requests.post(url, json=params, timeout=timeout)
+        r = requests.post(url, json=params, timeout=_timeout)
     except requests.Timeout as exc:
-        raise TelegramError(f"{method} timed out after {timeout}s") from exc
+        raise TelegramError(f"{method} timed out after {_timeout}s") from exc
     except requests.RequestException as exc:
         raise TelegramError(f"{method} failed ({type(exc).__name__})") from exc
 
@@ -65,7 +70,7 @@ def _api(method: str, timeout: float = 20.0, **params) -> dict:
 # ── Identity ─────────────────────────────────────────────────────────────
 def get_me() -> dict:
     """Confirm the token works. Returns the bot's own account info."""
-    return _api("getMe", timeout=15.0)
+    return _api("getMe", _timeout=15.0)
 
 
 def delete_webhook() -> None:
@@ -92,7 +97,7 @@ def get_updates(offset: int | None, timeout: int | None = None) -> list[dict]:
     if offset is not None:
         params["offset"] = offset
     # Read timeout must outlast the long poll itself.
-    return _api("getUpdates", timeout=t + 15.0, **params) or []
+    return _api("getUpdates", _timeout=t + 15.0, **params) or []
 
 
 def newest_update_id() -> int | None:
@@ -150,7 +155,7 @@ def fetch_file(file_id: str) -> tuple[bytes, str]:
     then the file itself is fetched from a different host.
     """
     try:
-        meta = _api("getFile", timeout=config.MEDIA_TIMEOUT, file_id=file_id)
+        meta = _api("getFile", _timeout=config.MEDIA_TIMEOUT, file_id=file_id)
     except TelegramError as exc:
         if "too big" in str(exc).lower():
             raise MediaError(
@@ -228,6 +233,6 @@ def send(chat_id: int | str, text: str) -> int | None:
 def send_typing(chat_id: int | str) -> None:
     """Show 'typing...' so a slow inference doesn't look like a dead bot."""
     try:
-        _api("sendChatAction", timeout=10.0, chat_id=chat_id, action="typing")
+        _api("sendChatAction", _timeout=10.0, chat_id=chat_id, action="typing")
     except TelegramError:
         pass

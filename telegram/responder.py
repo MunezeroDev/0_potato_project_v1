@@ -1,12 +1,5 @@
-"""What the bot says.
 
-Deliberately knows nothing about Telegram: every function here returns a
-string, and `send_sequence` is handed whatever function actually sends. That
-is what makes the next platform swap a one-file job.
-
-Text is Telegram HTML. Anything interpolated from a model result or from a
-user's name goes through `esc()` first.
-"""
+# What the bot says.
 from __future__ import annotations
 
 import html
@@ -178,7 +171,7 @@ def image_quality_note(norm) -> str:
     return " ".join(notes)
 
 
-# ── Paced delivery ───────────────────────────────────────────────────────
+#  Paced delivery 
 def send_sequence(send, to, messages: list[str], gap: float | None = None) -> None:
     """Send messages in order, waiting `gap` seconds between them.
 

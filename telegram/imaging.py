@@ -1,5 +1,4 @@
-"""Turn whatever Telegram sent into a clean RGB JPEG the model service accepts.
-"""
+
 from __future__ import annotations
 
 import io

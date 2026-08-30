@@ -1,9 +1,5 @@
-"""Start the Telegram bot.
 
-    python run.py
-
-Two terminals total: this one, and `serve/app.py` for the model. No tunnel.
-"""
+# Start the Telegram bot : python run.py
 from __future__ import annotations
 
 import os
@@ -15,12 +11,6 @@ sys.path.insert(0, str(HERE))
 
 
 def load_env(path: Path) -> int:
-    """Minimal .env loader - no dependency on python-dotenv.
-
-    Read as utf-8-sig, not utf-8: PowerShell's `Set-Content -Encoding utf8`
-    writes a byte-order mark, and with plain utf-8 the *first* key in the file
-    silently never loads. That bug cost an afternoon on the WhatsApp version.
-    """
     if not path.exists():
         return 0
     loaded = 0
@@ -62,7 +52,7 @@ def main() -> int:
         print("\nFix these in telegram/.env, then start again.")
         return 1
 
-    # Does the token actually work?
+
     try:
         me = telegram_io.get_me()
     except telegram_io.TelegramError as exc:
@@ -72,7 +62,6 @@ def main() -> int:
     print(f"  bot account        : @{username}  ({me.get('first_name', '')})")
     print(f"  open this to chat  : https://t.me/{username}")
 
-    # Is the model up? Not fatal - senders get a clear error until it is.
     model = classifier_client.health()
     if model is None:
         print(

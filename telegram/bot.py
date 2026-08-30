@@ -1,9 +1,5 @@
-"""The bot itself: ask Telegram for new messages, answer them.
 
-No web server, no public URL, no tunnel. This process reaches out to Telegram
-rather than waiting to be called, which is why nothing here has to be
-reachable from the internet.
-"""
+# The bot itself
 from __future__ import annotations
 
 import logging
@@ -23,13 +19,13 @@ logging.basicConfig(
 )
 log = logging.getLogger("telegram.bot")
 
-# Bounded pool: a CPU laptop should not run ten inferences at once.
+# Bounded pool: A CPU laptop should not run ten inferences at once.
 POOL = ThreadPoolExecutor(max_workers=config.WORKERS, thread_name_prefix="analyse")
 
 _running = True
 
 
-# ── The background job ───────────────────────────────────────────────────
+#  The background job 
 def analyse_and_reply(chat_id, file_id: str, declared_type: str,
                       first_name: str) -> None:
     """Download, normalise, classify, then send the three paced messages."""
@@ -86,7 +82,7 @@ def analyse_and_reply(chat_id, file_id: str, declared_type: str,
         )
 
 
-# ── One incoming message ─────────────────────────────────────────────────
+#  One incoming message 
 def handle_message(message: dict) -> None:
     chat_id = (message.get("chat") or {}).get("id")
     if chat_id is None:
@@ -103,7 +99,7 @@ def handle_message(message: dict) -> None:
         chat_id, first_name or "no name", bool(file_id), text[:60],
     )
 
-    # Something we can't read at all.
+    # Not readable 
     if not file_id:
         kind = telegram_io.unsupported_kind(message)
         if kind:
@@ -115,7 +111,7 @@ def handle_message(message: dict) -> None:
             telegram_io.send(chat_id, responder.help_text(first_name))
         return
 
-    # A document that isn't an image (a PDF dragged into the chat, say).
+    # Wrong Form ie images
     if declared_type and not declared_type.startswith("image/"):
         telegram_io.send(
             chat_id,
@@ -135,14 +131,8 @@ def handle_update(update: dict) -> None:
         handle_message(message)
 
 
-# ── The polling loop ─────────────────────────────────────────────────────
+#  The polling loop 
 def run_forever() -> None:
-    """Ask Telegram for news, forever.
-
-    `offset` is the acknowledgement. Sending last_update_id + 1 tells Telegram
-    those messages are dealt with and it can stop re-offering them; that is
-    also what stops the bot answering the same photo twice.
-    """
     global _running
     _running = True
 
