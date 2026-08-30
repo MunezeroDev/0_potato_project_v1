@@ -1,6 +1,0 @@
-# Secrets. Never commit this - it holds your Twilio Auth Token.
-.env
-
-__pycache__/
-*.py[cod]
-.pytest_cache/

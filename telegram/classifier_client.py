@@ -8,7 +8,7 @@ import requests
 
 import config
 
-log = logging.getLogger("whatsapp.classifier")
+log = logging.getLogger("telegram.classifier")
 
 
 class ClassifierError(RuntimeError):

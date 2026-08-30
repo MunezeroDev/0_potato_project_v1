@@ -1,0 +1,7 @@
+
+# No python-telegram-bot either: the Bot API is plain HTTPS + JSON, so requests
+requests>=2.31
+pillow>=10.0
+
+# Optional: 
+pillow-heif>=0.16 ; platform_system != "Emscripten"

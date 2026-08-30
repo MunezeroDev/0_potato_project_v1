@@ -1,14 +1,22 @@
+"""What the bot says.
 
+Deliberately knows nothing about Telegram: every function here returns a
+string, and `send_sequence` is handed whatever function actually sends. That
+is what makes the next platform swap a one-file job.
+
+Text is Telegram HTML. Anything interpolated from a model result or from a
+user's name goes through `esc()` first.
+"""
 from __future__ import annotations
 
+import html
 import logging
 import threading
 import time
 
 import config
-import twilio_io
 
-log = logging.getLogger("whatsapp.responder")
+log = logging.getLogger("telegram.responder")
 
 DISEASE_ADVICE = {
     "Early Blight": (
@@ -31,20 +39,24 @@ DISEASE_ADVICE = {
 }
 
 
+def esc(value) -> str:
+    """Escape text for Telegram's HTML parse mode."""
+    return html.escape(str(value), quote=False)
+
+
 def _first_name(profile_name: str | None) -> str:
-    """WhatsApp profile names are free text. Take a usable first word."""
+    """Telegram first names are free text. Take a usable first word."""
     if not profile_name:
         return ""
     cleaned = " ".join(profile_name.split())
     if not cleaned:
         return ""
-    first = cleaned.split(" ")[0]
-    return first[:24]
+    return cleaned.split(" ")[0][:24]
 
 
 def greeting(profile_name: str | None) -> str:
     name = _first_name(profile_name)
-    who = f"Hi {name}" if name else "Hi there"
+    who = f"Hi {esc(name)}" if name else "Hi there"
     return (
         f"{who} - Potato Leaf Doctor here.\n\n"
         "Got your photo. Looking at it now, this takes a few seconds.\n"
@@ -55,7 +67,7 @@ def greeting(profile_name: str | None) -> str:
 
 def help_text(profile_name: str | None) -> str:
     name = _first_name(profile_name)
-    who = f"Hi {name}" if name else "Hi there"
+    who = f"Hi {esc(name)}" if name else "Hi there"
     return (
         f"{who} - Potato Leaf Doctor here.\n\n"
         "Send me a photo of a single potato leaf and I'll tell you whether it "
@@ -71,24 +83,24 @@ def _bar(fraction: float, width: int = 10) -> str:
 
 
 def verdict_message(result: dict, profile_name: str | None = None) -> str:
-    label = result.get("label", "unknown")
+    label = esc(result.get("label", "unknown"))
     conf = float(result.get("confidence", 0.0))
     abstain = bool(result.get("abstain", False))
 
     if abstain:
         return (
-            "1/3  No confident call.\n\n"
-            f"The closest match was *{label}* at {conf:.0%}, which is below the "
-            f"{config.LOW_CONFIDENCE_HINT:.0%} bar this model needs before it will "
-            "commit to an answer.\n\n"
+            "<b>1/3  No confident call.</b>\n\n"
+            f"The closest match was <b>{label}</b> at {conf:.0%}, which is below "
+            f"the {config.LOW_CONFIDENCE_HINT:.0%} bar this model needs before it "
+            "will commit to an answer.\n\n"
             "That usually means the photo is blurry, too far away, has several "
             "leaves in it, or shows something the model was never trained on. "
             "Try again with one leaf filling the frame."
         )
 
     return (
-        "1/3  Result\n\n"
-        f"*{label}*\n"
+        "<b>1/3  Result</b>\n\n"
+        f"<b>{label}</b>\n"
         f"Model score: {conf:.1%}\n\n"
         "Full breakdown coming next."
     )
@@ -96,23 +108,26 @@ def verdict_message(result: dict, profile_name: str | None = None) -> str:
 
 def breakdown_message(result: dict, image_note: str = "") -> str:
     probs: dict = result.get("probs", {})
-    ordered = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)
+    ordered = sorted(probs.items(), key=lambda kv: float(kv[1]), reverse=True)
 
-    lines = ["2/3  How the three classes scored", ""]
-    for name, value in ordered:
-        lines.append(f"{_bar(float(value))}  {float(value):5.1%}  {name}")
-
-    lines.append("")
-    lines.append(
-        "These are relative model scores across the three classes, not "
-        "calibrated probabilities - they always add up to 100%."
+    rows = "\n".join(
+        f"{_bar(float(v))}  {float(v):5.1%}  {esc(n)}" for n, v in ordered
     )
 
-    if image_note:
-        lines.append("")
-        lines.append(image_note)
+    out = [
+        "<b>2/3  How the three classes scored</b>",
+        "",
+        f"<pre>{rows}</pre>",
+        "",
+        "These are relative model scores across the three classes, not "
+        "calibrated probabilities - they always add up to 100%.",
+    ]
 
-    return "\n".join(lines)
+    if image_note:
+        out.append("")
+        out.append(esc(image_note))
+
+    return "\n".join(out)
 
 
 def guidance_message(result: dict) -> str:
@@ -128,8 +143,8 @@ def guidance_message(result: dict) -> str:
         body = DISEASE_ADVICE.get(label, "Have an agronomist confirm this in person.")
 
     return (
-        "3/3  What this means\n\n"
-        f"{body}\n\n"
+        "<b>3/3  What this means</b>\n\n"
+        f"{esc(body)}\n\n"
         "Worth knowing: this model was trained on clean laboratory photographs "
         "of single leaves, not field snapshots, and on far fewer healthy examples "
         "than diseased ones. It is a screening aid for a research prototype - "
@@ -141,18 +156,18 @@ def guidance_message(result: dict) -> str:
 def error_message(reason: str) -> str:
     return (
         "Sorry - I couldn't get a result from that one.\n\n"
-        f"{reason}\n\n"
+        f"{esc(reason)}\n\n"
         "Send another photo and I'll try again."
     )
 
 
 def image_quality_note(norm) -> str:
-    """A short line about what WhatsApp did to the photo, or '' if unremarkable."""
+    """A short line about what Telegram did to the photo, or '' if unremarkable."""
     notes = []
     if norm.low_resolution:
         notes.append(
-            f"Heads up: WhatsApp delivered this at {norm.source_width}x"
-            f"{norm.source_height}px, which is small for a reliable read."
+            f"Heads up: this arrived at {norm.source_width}x{norm.source_height}px, "
+            "which is small for a reliable read."
         )
     elif norm.downscaled:
         notes.append(
@@ -163,28 +178,26 @@ def image_quality_note(norm) -> str:
     return " ".join(notes)
 
 
-# Paced delivery 
-def send_sequence(to: str, messages: list[str], gap: float | None = None,
-                  sender=None) -> None:
+# ── Paced delivery ───────────────────────────────────────────────────────
+def send_sequence(send, to, messages: list[str], gap: float | None = None) -> None:
     """Send messages in order, waiting `gap` seconds between them.
 
-    Called on a background thread so the webhook can return immediately - Twilio
-    gives a webhook roughly ten seconds before it gives up, which is nowhere near
-    enough for a media download plus CPU inference plus a paced conversation.
+    `send` is any callable taking (to, text) - telegram_io.send in production,
+    a printer in simulate.py. Runs on a worker thread so the polling loop keeps
+    reading new messages while a conversation is still being paced out.
     """
     gap = config.MESSAGE_GAP_SECONDS if gap is None else gap
-    send = sender or twilio_io.send
     for i, body in enumerate(messages):
         if i:
             time.sleep(gap)
         send(to, body)
 
 
-def send_sequence_async(to: str, messages: list[str], gap: float | None = None,
-                        sender=None) -> threading.Thread:
+def send_sequence_async(send, to, messages: list[str],
+                        gap: float | None = None) -> threading.Thread:
     t = threading.Thread(
         target=send_sequence,
-        args=(to, messages, gap, sender),
+        args=(send, to, messages, gap),
         name=f"reply-{to}",
         daemon=True,
     )

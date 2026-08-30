@@ -1,4 +1,10 @@
+"""Test the bot with a photo from disk. No Telegram account, no network.
 
+    python simulate.py "..\\results\\uploads\\3d76551299be.jpg"
+    python simulate.py "..\\results\\uploads\\3d76551299be.jpg" --fake-model
+
+Prints the exact four messages a sender would receive.
+"""
 from __future__ import annotations
 
 import argparse
@@ -9,22 +15,28 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-os.environ.setdefault("TWILIO_ACCOUNT_SID", "AC" + "0" * 32)
-os.environ.setdefault("TWILIO_AUTH_TOKEN", "simulation")
-os.environ["TWILIO_VALIDATE_SIGNATURE"] = "false"
+# config.check() must pass without a real token.
+os.environ.setdefault("TELEGRAM_BOT_TOKEN", "123456789:" + "S" * 35)
 
-import bot as botmod  # noqa: E402
-import classifier_client  # noqa: E402
-import config  # noqa: E402
-import twilio_io  # noqa: E402
+import bot as botmod         # noqa: E402
+import classifier_client     # noqa: E402
+import config                # noqa: E402
+import telegram_io           # noqa: E402
 
 RULE = "-" * 62
 
 
+def strip_html(text: str) -> str:
+    """Rough render of Telegram HTML for a terminal."""
+    for tag in ("<b>", "</b>", "<i>", "</i>", "<pre>", "</pre>", "<code>", "</code>"):
+        text = text.replace(tag, "")
+    return (text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&"))
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Simulate a WhatsApp photo message.")
+    ap = argparse.ArgumentParser(description="Simulate a Telegram photo message.")
     ap.add_argument("image", help="path to a leaf photo on disk")
-    ap.add_argument("--name", default="Munezero", help="sender's WhatsApp profile name")
+    ap.add_argument("--name", default="Munezero", help="sender's Telegram first name")
     ap.add_argument("--gap", type=float, default=0.0,
                     help="seconds between result messages (default 0 for speed)")
     ap.add_argument("--fake-model", action="store_true",
@@ -40,19 +52,17 @@ def main() -> int:
     suffix = path.suffix.lower().lstrip(".") or "jpeg"
     content_type = f"image/{'jpeg' if suffix in ('jpg', 'jpeg') else suffix}"
 
-    # Fake #1: Twilio media download.
-    twilio_io.fetch_media = lambda url: (raw, content_type)
+    # Fake #1: the Telegram download.
+    telegram_io.fetch_file = lambda file_id: (raw, content_type)
 
-    # Fake #2: Twilio outbound send - print instead.
+    # Fake #2: outbound send - print instead.
     def fake_send(to, body):
-        print(f"\n>>> to {to}\n{body}\n{RULE}")
-        return "SM_simulated"
+        print(f"\n>>> to chat {to}\n{strip_html(body)}\n{RULE}")
+        return 1
 
-    twilio_io.send = fake_send
-    import responder
-    responder.twilio_io = twilio_io
+    telegram_io.send = fake_send
+    telegram_io.send_typing = lambda chat_id: None
     config.MESSAGE_GAP_SECONDS = args.gap
-    botmod._MIN_LEAD_SECONDS = 0.0
 
     if args.fake_model:
         classifier_client.predict = lambda data, filename="x.jpg": {
@@ -73,28 +83,23 @@ def main() -> int:
             print("Or re-run this with --fake-model to test the messaging only.")
             return 1
 
-    client = botmod.app.test_client()
-    resp = client.post("/whatsapp", data={
-        "MessageSid": "SMsimulated0001",
-        "From": "whatsapp:+15550001111",
-        "ProfileName": args.name,
-        "NumMedia": "1",
-        "MediaUrl0": "https://api.twilio.com/simulated",
-        "MediaContentType0": content_type,
-        "Body": "",
+    print(RULE)
+    print("What the sender receives:")
+    print(RULE)
+
+    botmod.handle_update({
+        "update_id": 1,
+        "message": {
+            "message_id": 1,
+            "chat": {"id": 5550001111, "type": "private"},
+            "from": {"id": 5550001111, "first_name": args.name},
+            "photo": [
+                {"file_id": "simulated_small", "width": 90, "height": 90},
+                {"file_id": "simulated_large", "width": 1280, "height": 1280},
+            ],
+        },
     })
 
-    print(RULE)
-    print("Immediate webhook reply (what Twilio turns into the greeting):")
-    print(RULE)
-    body = resp.get_data(as_text=True)
-    start, end = body.find("<Message>") + 9, body.find("</Message>")
-    print(body[start:end].replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">"))
-    print(RULE)
-    print("Follow-up messages:")
-
-    for t in list(botmod.POOL._threads):
-        pass
     botmod.POOL.shutdown(wait=True)
     return 0
 

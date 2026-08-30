@@ -1,4 +1,4 @@
-"""Turn whatever WhatsApp sent into a clean RGB JPEG the model service accepts.
+"""Turn whatever Telegram sent into a clean RGB JPEG the model service accepts.
 """
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import io
 import logging
 from dataclasses import dataclass
 
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError  # type: ignore[import-not-found]
 
-log = logging.getLogger("whatsapp.imaging")
+log = logging.getLogger("telegram.imaging")
 
 # HEIC/HEIF support 
 HEIF_OK = False
@@ -116,7 +116,7 @@ def normalise(raw: bytes, content_type: str = "", min_short_edge: int = 224,
 
     return Normalised(
         data=out.getvalue(),
-        filename="whatsapp_upload.jpg",
+        filename="telegram_upload.jpg",
         width=w,
         height=h,
         source_format=source_format,
