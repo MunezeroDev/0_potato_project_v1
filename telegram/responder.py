@@ -138,11 +138,6 @@ def guidance_message(result: dict) -> str:
     return (
         "<b>3/3  What this means</b>\n\n"
         f"{esc(body)}\n\n"
-        "Worth knowing: this model was trained on clean laboratory photographs "
-        "of single leaves, not field snapshots, and on far fewer healthy examples "
-        "than diseased ones. It is a screening aid for a research prototype - "
-        "not agronomic advice, and not a basis for spraying decisions.\n\n"
-        "Send another leaf photo any time."
     )
 
 
@@ -173,12 +168,6 @@ def image_quality_note(norm) -> str:
 
 #  Paced delivery 
 def send_sequence(send, to, messages: list[str], gap: float | None = None) -> None:
-    """Send messages in order, waiting `gap` seconds between them.
-
-    `send` is any callable taking (to, text) - telegram_io.send in production,
-    a printer in simulate.py. Runs on a worker thread so the polling loop keeps
-    reading new messages while a conversation is still being paced out.
-    """
     gap = config.MESSAGE_GAP_SECONDS if gap is None else gap
     for i, body in enumerate(messages):
         if i:

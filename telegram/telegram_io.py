@@ -1,11 +1,4 @@
-"""Everything that talks to Telegram's Bot API.
 
-This is the only file that knows Telegram exists. Swapping messaging platform
-again means rewriting this file and nothing else.
-
-No SDK: the Bot API is plain HTTPS + JSON, so `requests` is enough, and a
-folder named `telegram/` can't then collide with a package named `telegram`.
-"""
 from __future__ import annotations
 
 import logging
@@ -25,14 +18,8 @@ class MediaError(RuntimeError):
     """Raised when the photo could not be retrieved. Safe to show a user."""
 
 
-# ── Low-level call ───────────────────────────────────────────────────────
+# Low-level call 
 def _api(method: str, _timeout: float = 20.0, **params) -> dict:
-    """POST one Bot API method and return its `result`.
-
-    `_timeout` is how long to wait on the socket, and is deliberately
-    underscore-prefixed: the Bot API has its own `timeout` parameter (getUpdates
-    uses it for long polling), and without the underscore the two collide.
-    """
     if not config.BOT_TOKEN:
         raise TelegramError("TELEGRAM_BOT_TOKEN is not set.")
 
@@ -67,31 +54,19 @@ def _api(method: str, _timeout: float = 20.0, **params) -> dict:
     return payload.get("result")
 
 
-# ── Identity ─────────────────────────────────────────────────────────────
+# Identity
 def get_me() -> dict:
-    """Confirm the token works. Returns the bot's own account info."""
     return _api("getMe", _timeout=15.0)
 
 
 def delete_webhook() -> None:
-    """Polling and webhooks are mutually exclusive; make sure no webhook is set.
-
-    Harmless if there was never one. Never raises.
-    """
     try:
         _api("deleteWebhook", drop_pending_updates=False)
     except TelegramError:
         log.debug("deleteWebhook failed; continuing", exc_info=True)
 
-
-# ── Inbound ──────────────────────────────────────────────────────────────
+# Inbound
 def get_updates(offset: int | None, timeout: int | None = None) -> list[dict]:
-    """Long-poll for new messages.
-
-    Telegram holds the connection open for up to `timeout` seconds and answers
-    the moment something arrives. `offset` is the acknowledgement: sending
-    last_update_id + 1 tells Telegram we're done with everything before it.
-    """
     t = config.POLL_TIMEOUT if timeout is None else timeout
     params = {"timeout": t, "allowed_updates": ["message"]}
     if offset is not None:
@@ -101,23 +76,15 @@ def get_updates(offset: int | None, timeout: int | None = None) -> list[dict]:
 
 
 def newest_update_id() -> int | None:
-    """The id of the most recent pending update. Used to skip a backlog."""
     updates = get_updates(offset=-1, timeout=0)
     if not updates:
         return None
     return updates[-1]["update_id"]
 
 
-# ── Inbound: which attachment is the photo ───────────────────────────────
+#  Inbound: which attachment is the photo 
 def photo_file_id(message: dict) -> tuple[str | None, str]:
-    """Find the best image in a message.
 
-    Returns (file_id, declared_mime). file_id is None when there is no image.
-
-    Telegram delivers a compressed photo as several sizes, smallest first, so
-    the last entry is the largest. A photo sent as a *file* ("send without
-    compression", or a screenshot dragged in) arrives as a document instead.
-    """
     photos = message.get("photo")
     if photos:
         return photos[-1].get("file_id"), "image/jpeg"
@@ -130,7 +97,6 @@ def photo_file_id(message: dict) -> tuple[str | None, str]:
 
 
 def unsupported_kind(message: dict) -> str | None:
-    """Name the attachment type if it is one we can't read. Else None."""
     for key, human in (
         ("video", "a video"),
         ("video_note", "a video message"),
@@ -147,13 +113,8 @@ def unsupported_kind(message: dict) -> str | None:
     return None
 
 
-# ── Inbound: download ────────────────────────────────────────────────────
+#  Inbound: download
 def fetch_file(file_id: str) -> tuple[bytes, str]:
-    """Download one attachment. Returns (bytes, content_type).
-
-    Two steps, unlike Twilio: getFile turns the id into a short-lived path,
-    then the file itself is fetched from a different host.
-    """
     try:
         meta = _api("getFile", _timeout=config.MEDIA_TIMEOUT, file_id=file_id)
     except TelegramError as exc:
@@ -208,13 +169,9 @@ def fetch_file(file_id: str) -> tuple[bytes, str]:
         raise MediaError(f"Could not download the photo ({type(exc).__name__}).") from exc
 
 
-# ── Outbound ─────────────────────────────────────────────────────────────
+#  Outbound 
 def send(chat_id: int | str, text: str) -> int | None:
-    """Send one message. Returns the message id, or None on failure.
 
-    Never raises: a failed follow-up must not take the worker thread down.
-    Text is HTML - responder.py escapes anything it interpolates.
-    """
     try:
         msg = _api(
             "sendMessage",
@@ -231,7 +188,6 @@ def send(chat_id: int | str, text: str) -> int | None:
 
 
 def send_typing(chat_id: int | str) -> None:
-    """Show 'typing...' so a slow inference doesn't look like a dead bot."""
     try:
         _api("sendChatAction", _timeout=10.0, chat_id=chat_id, action="typing")
     except TelegramError:

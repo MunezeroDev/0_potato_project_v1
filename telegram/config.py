@@ -47,7 +47,7 @@ HEALTH_URL = os.environ.get("HEALTH_URL", "http://127.0.0.1:5000/health")
 PREDICT_TIMEOUT = _float("PREDICT_TIMEOUT", 120.0)
 
 
-#  Conversation pacing ──────────────────────────────────────────────────
+#  Conversation pacing 
 MESSAGE_GAP_SECONDS = _float("MESSAGE_GAP_SECONDS", 10.0)
 
 LOW_CONFIDENCE_HINT = _float("LOW_CONFIDENCE_HINT", 0.90)
